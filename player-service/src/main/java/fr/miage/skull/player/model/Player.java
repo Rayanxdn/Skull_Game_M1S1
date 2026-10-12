@@ -24,6 +24,9 @@ public class Player {
     @NotBlank
     private String pseudo;
 
+    @Column(nullable = false)
+    private boolean banned = false;
+
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> role; // USER ou ADMIN par exemple
 
@@ -74,5 +77,13 @@ public class Player {
 
     public void setRole(List<String> role) {
         this.role = role;
+    }
+
+    public boolean isBanned() {
+        return banned;
+    }
+
+    public void setBanned(boolean banned) {
+        this.banned = banned;
     }
 }
