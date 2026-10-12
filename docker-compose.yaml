@@ -1,3 +1,9 @@
+x-service-env: &service-env
+  SERVER_PORT: 8080
+  SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/skull
+  SPRING_DATASOURCE_USERNAME: ${DB_USER}
+  SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+
 services:
   db:
     image: postgres:16
@@ -9,6 +15,47 @@ services:
       - db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d skull"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  player-service:
+    build: ./player-service
+    ports:
+      - "8081:8080"
+    environment: *service-env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  game-service:
+    build: ./game-service
+    ports:
+      - "8082:8080"
+    environment: *service-env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  ladder-service:
+    build: ./ladder-service
+    ports:
+      - "8083:8080"
+    environment: *service-env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  market-service:
+    build: ./market-service
+    ports:
+      - "8084:8080"
+    environment: *service-env
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   db_data:
