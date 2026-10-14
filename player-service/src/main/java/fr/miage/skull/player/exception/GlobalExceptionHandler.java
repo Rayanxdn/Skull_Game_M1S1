@@ -39,10 +39,20 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ProblemDetail handleRuntimeException(RuntimeException ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        problem.setTitle("Erreur Métier / Requête Invalide");
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail handleUncaughtException(Exception ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Une erreur interne est survenue sur le serveur");
+        problem.setTitle("Erreur Interne");
+        problem.setType(URI.create("https://api.skull.miage.fr/errors/internal-server-error"));
+        problem.setProperty("timestamp", Instant.now());
+        return problem;
+    }
+
+    @ExceptionHandler(EmailAlreadyUsedException.class)
+    public ProblemDetail handleEmailAlreadyUsedException(EmailAlreadyUsedException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Conflit de Données");
+        problem.setType(URI.create("https://api.skull.miage.fr/errors/conflict"));
         problem.setProperty("timestamp", Instant.now());
         return problem;
     }

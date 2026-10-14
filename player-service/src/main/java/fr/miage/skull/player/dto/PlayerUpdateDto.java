@@ -1,9 +1,7 @@
 package fr.miage.skull.player.dto;
 
 import jakarta.validation.constraints.Email;
-import lombok.Data;
 
-@Data
 public class PlayerUpdateDto {
     private String pseudo;
 

@@ -70,7 +70,7 @@ public class PlayerController {
     }
 
     @GetMapping
-    @Operation(summary = "lister tpous les joueurs")
+    @Operation(summary = "lister tous les joueurs")
     @ApiResponse(responseCode = "200", description = " Liste des joueurs récuprée avec succès")
     public ResponseEntity<List<PlayerResponseDto>> getAllPlayers() {
         List<PlayerResponseDto> players = playerService.getAllePlayers();

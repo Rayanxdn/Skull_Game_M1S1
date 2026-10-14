@@ -3,6 +3,7 @@ package fr.miage.skull.player.service;
 import fr.miage.skull.player.dto.PlayerRegistrationDTO;
 import fr.miage.skull.player.dto.PlayerResponseDto;
 import fr.miage.skull.player.dto.PlayerUpdateDto;
+import fr.miage.skull.player.exception.EmailAlreadyUsedException;
 import fr.miage.skull.player.exception.RessourceNotFoundException;
 import fr.miage.skull.player.mapper.PlayerMapper;
 import fr.miage.skull.player.model.Player;
@@ -18,18 +19,17 @@ public class PlayerService {
 
     private final PlayerRepository playerRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PlayerMapper playerMapper;
 
-    @Autowired
-    private PlayerMapper playerMapper;
-
-    public PlayerService(PlayerRepository playerRepository, PasswordEncoder passwordEncoder) {
+    public PlayerService(PlayerRepository playerRepository, PasswordEncoder passwordEncoder, PlayerMapper playerMapper) {
         this.playerRepository = playerRepository;
         this.passwordEncoder = passwordEncoder;
+        this.playerMapper = playerMapper;
     }
 
     public PlayerResponseDto registerPlayer(PlayerRegistrationDTO dto) {
         if (playerRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new RessourceNotFoundException("Un compte existe déjà avec cet email");
+            throw new EmailAlreadyUsedException("Un compte existe déjà avec cet email");
         }
         Player player = new Player(
                 dto.getEmail(),
@@ -64,6 +64,11 @@ public class PlayerService {
             player.setPseudo(updateDto.getPseudo());
         }
         if (updateDto.getEmail() != null && !updateDto.getEmail().trim().isEmpty()) {
+            if (!player.getEmail().equals(updateDto.getEmail())) {
+                if (playerRepository.findByEmail(updateDto.getEmail()).isPresent()) {
+                    throw new EmailAlreadyUsedException("Cet email est déjà utilisé par un autre compte !");
+                }
+            }
             player.setEmail(updateDto.getEmail());
         }
         if (updateDto.getPassword() != null && !updateDto.getPassword().isEmpty()) {
