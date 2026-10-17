@@ -3,6 +3,8 @@ x-service-env: &service-env
   SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/skull
   SPRING_DATASOURCE_USERNAME: ${DB_USER}
   SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+  JWT_SECRET: ${JWT_SECRET}
+  JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-3600000}
 
 services:
   db:
@@ -25,7 +27,11 @@ services:
     build: ./player-service
     ports:
       - "8081:8080"
-    environment: *service-env
+    environment:
+      <<: *service-env
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_PSEUDO: ${ADMIN_PSEUDO:-Admin}
     depends_on:
       db:
         condition: service_healthy
