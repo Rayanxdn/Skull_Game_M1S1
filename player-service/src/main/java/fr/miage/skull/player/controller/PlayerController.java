@@ -1,5 +1,6 @@
 package fr.miage.skull.player.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import fr.miage.skull.player.dto.PlayerRegistrationDTO;
 import fr.miage.skull.player.dto.PlayerResponseDto;
 import fr.miage.skull.player.dto.PlayerUpdateDto;
@@ -45,6 +46,7 @@ public class PlayerController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @playerSecurity.isOwner(#id, authentication)")
     @Operation(summary = "Afficher un compte")
     public ResponseEntity<PlayerResponseDto> getPlayer(@PathVariable Long id) {
         PlayerResponseDto playerDto = playerService.getPlayerDtoById(id);
@@ -52,6 +54,7 @@ public class PlayerController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @playerSecurity.isOwner(#id, authentication)")
     @Operation(summary = "Mettre à jour une donnée d'un joueur")
     public ResponseEntity<PlayerResponseDto> updatePlayer(
             @PathVariable Long id,
@@ -61,6 +64,7 @@ public class PlayerController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @playerSecurity.isOwner(#id, authentication)")
     @Operation(summary = "Supprimer un compte")
     @ApiResponse(responseCode = "204", description = "Joueur supprimé avec succès")
     @ApiResponse(responseCode = "404", description = "Joueur non trouvé")
