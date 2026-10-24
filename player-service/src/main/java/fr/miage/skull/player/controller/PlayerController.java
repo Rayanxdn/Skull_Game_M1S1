@@ -1,5 +1,6 @@
 package fr.miage.skull.player.controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.security.access.prepost.PreAuthorize;
 import fr.miage.skull.player.dto.PlayerRegistrationDTO;
 import fr.miage.skull.player.dto.PlayerResponseDto;
@@ -38,6 +39,7 @@ public class PlayerController {
         return ResponseEntity.status(HttpStatus.CREATED).body(newPlayer);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/{id}/ban") // Endpoint pour bannir un joueur par un admin uniquement.
     @Operation(summary = "Bannir un compte")
     public ResponseEntity<PlayerResponseDto> banPlayer(@PathVariable Long id, @RequestParam boolean banned) {
