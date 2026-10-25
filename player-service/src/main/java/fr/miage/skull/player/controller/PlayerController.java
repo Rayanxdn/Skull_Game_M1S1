@@ -47,6 +47,7 @@ public class PlayerController {
         return ResponseEntity.ok(updatePlayer);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or @playerSecurity.isOwner(#id, authentication)")
     @Operation(summary = "Afficher un compte")
@@ -55,6 +56,7 @@ public class PlayerController {
         return ResponseEntity.ok(playerDto);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or @playerSecurity.isOwner(#id, authentication)")
     @Operation(summary = "Mettre à jour une donnée d'un joueur")
@@ -65,6 +67,7 @@ public class PlayerController {
         return ResponseEntity.ok(updatePlayer);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or @playerSecurity.isOwner(#id, authentication)")
     @Operation(summary = "Supprimer un compte")
@@ -75,6 +78,7 @@ public class PlayerController {
         return ResponseEntity.noContent().build();
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping
     @Operation(summary = "lister tous les joueurs")
     @ApiResponse(responseCode = "200", description = " Liste des joueurs récuprée avec succès")

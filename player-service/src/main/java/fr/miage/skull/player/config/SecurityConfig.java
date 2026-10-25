@@ -27,6 +27,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()
                         .requestMatchers(
 
                                 HttpMethod.POST, "/api/v1/players/register","/api/v1/auth/login").permitAll()
@@ -37,6 +38,10 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**","/v3/api-docs", "/swagger-ui.html").permitAll()
 
                         .requestMatchers(HttpMethod.PUT, "/api/v1/players/*/ban").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/players/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/players/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/players").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/players/*").hasRole("ADMIN")
 
                         .anyRequest().denyAll()
 
