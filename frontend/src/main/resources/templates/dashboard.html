@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tableau de bord - Skull</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="card wide">
+    <div class="topbar">
+        <h1>Tableau de bord</h1>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit">Se déconnecter</button>
+        </form>
+    </div>
+
+    <p th:if="${error}" class="alert err" th:text="${error}"></p>
+
+    <section class="section">
+        <h2>Mon profil</h2>
+        <p>Connecté en tant que <strong th:text="${pseudo}"></strong>
+            <span class="badge" th:each="r : ${roles}" th:text="${r}"></span></p>
+        <p th:if="${profile != null}">Email : <span th:text="${profile['email']}"></span></p>
+    </section>
+
+    <section class="section" th:if="${isAdmin}">
+        <h2>Administration</h2>
+        <p>La gestion des joueurs (bannissement) sera disponible ici.</p>
+    </section>
+
+    <section class="section">
+        <h2>Parties ouvertes <span class="mock">(données simulées)</span></h2>
+        <table>
+            <tr><th>Partie</th><th>Joueurs</th><th>IA</th></tr>
+            <tr th:each="g : ${games}">
+                <td th:text="${g['name']}"></td>
+                <td th:text="${g['players']} + ' / ' + ${g['max']}"></td>
+                <td th:text="${g['ai']}"></td>
+            </tr>
+        </table>
+    </section>
+
+    <section class="section">
+        <h2>Mon historique <span class="mock">(données simulées)</span></h2>
+        <table>
+            <tr><th>Date</th><th>Résultat</th><th>Score</th></tr>
+            <tr th:each="h : ${history}">
+                <td th:text="${h['date']}"></td>
+                <td th:text="${h['result']}"></td>
+                <td th:text="${h['score']}"></td>
+            </tr>
+        </table>
+    </section>
+</main>
+</body>
+</html>

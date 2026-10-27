@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Inscription - Skull</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="card">
+    <h1>Inscription</h1>
+    <p th:if="${error}" class="alert err" th:text="${error}"></p>
+
+    <form th:action="@{/register}" th:object="${registerForm}" method="post" novalidate>
+        <label for="pseudo">Pseudo</label>
+        <input id="pseudo" type="text" th:field="*{pseudo}">
+        <p class="field-error" th:if="${#fields.hasErrors('pseudo')}" th:errors="*{pseudo}"></p>
+
+        <label for="email">Email</label>
+        <input id="email" type="email" th:field="*{email}" autocomplete="username">
+        <p class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+
+        <label for="password">Mot de passe (6 caractères minimum)</label>
+        <input id="password" type="password" th:field="*{password}" autocomplete="new-password">
+        <p class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
+
+        <label for="confirmPassword">Confirmer le mot de passe</label>
+        <input id="confirmPassword" type="password" th:field="*{confirmPassword}" autocomplete="new-password">
+        <p class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></p>
+
+        <button type="submit">Créer mon compte</button>
+    </form>
+    <p>Déjà inscrit ? <a th:href="@{/login}">Se connecter</a></p>
+</main>
+</body>
+</html>

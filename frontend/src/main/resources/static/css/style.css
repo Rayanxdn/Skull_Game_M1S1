@@ -1,0 +1,20 @@
+* { box-sizing: border-box; }
+body { font-family: system-ui, sans-serif; background: #f4f1ec; color: #222; margin: 0; padding: 24px; }
+h1, h2 { margin-top: 0; }
+.card { max-width: 420px; margin: 40px auto; background: #fff; padding: 28px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+.wide { max-width: 860px; }
+label { display: block; margin: 14px 0 4px; font-weight: 600; }
+input { width: 100%; padding: 10px; border: 1px solid #bbb; border-radius: 6px; font-size: 15px; }
+button { margin-top: 18px; padding: 10px 18px; border: 0; border-radius: 6px; background: #5b2a86; color: #fff; font-size: 15px; cursor: pointer; }
+button.link { background: transparent; color: #5b2a86; padding: 0; margin: 0; text-decoration: underline; }
+.alert { padding: 10px 12px; border-radius: 6px; margin: 0 0 14px; }
+.ok { background: #e6f4ea; color: #1e5b2f; }
+.info { background: #e8f0fe; color: #1a3d7c; }
+.err { background: #fdeaea; color: #8a1c1c; }
+.field-error { color: #b3261e; font-size: 13px; margin: 4px 0 0; }
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.badge { background: #5b2a86; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-left: 6px; }
+table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+th, td { text-align: left; padding: 8px; border-bottom: 1px solid #e3e3e3; }
+.mock { font-size: 12px; color: #777; font-weight: 400; }
+.section { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 18px; box-shadow: 0 2px 10px rgba(0,0,0,.06); }

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Connexion - Skull</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="card">
+    <h1>Connexion</h1>
+    <p th:if="${success}" class="alert ok" th:text="${success}"></p>
+    <p th:if="${info}" class="alert info" th:text="${info}"></p>
+    <p th:if="${error}" class="alert err" th:text="${error}"></p>
+
+    <form th:action="@{/login}" th:object="${loginForm}" method="post" novalidate>
+        <label for="email">Email</label>
+        <input id="email" type="email" th:field="*{email}" autocomplete="username">
+        <p class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+
+        <label for="password">Mot de passe</label>
+        <input id="password" type="password" th:field="*{password}" autocomplete="current-password">
+        <p class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
+
+        <button type="submit">Se connecter</button>
+    </form>
+    <p>Pas encore de compte ? <a th:href="@{/register}">S'inscrire</a></p>
+</main>
+</body>
+</html>
