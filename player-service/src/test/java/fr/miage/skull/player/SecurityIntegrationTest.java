@@ -199,6 +199,6 @@ class SecurityIntegrationTest {
 
         // et l'ancien token, pourtant encore valide, est rejeté
         mockMvc.perform(get("/api/v1/players/" + id).header("Authorization", bearer(oldToken)))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 }

@@ -53,12 +53,9 @@ public class AdminController {
         try {
             model.addAttribute("players", api.listPlayers(token(session)));
         } catch (ApiException e) {
-            if (e.getStatus() == 401) {              // token expiré ou compte banni
+            if (e.getStatus() == 401 || e.getStatus() == 403) {   // token expiré ou compte banni
                 session.invalidate();
                 return "redirect:/login?expired";
-            }
-            if (e.getStatus() == 403) {
-                return "redirect:/dashboard?forbidden";
             }
             model.addAttribute("error", message(e));
         }
@@ -76,12 +73,11 @@ public class AdminController {
             api.setBanned(id, banned, token(session));
             redirect.addFlashAttribute("success", banned ? "Joueur banni." : "Joueur débanni.");
         } catch (ApiException e) {
-            if (e.getStatus() == 401) {
+            if (e.getStatus() == 401 || e.getStatus() == 403) {
                 session.invalidate();
                 return "redirect:/login?expired";
             }
-            redirect.addFlashAttribute("error", e.getStatus() == 403
-                    ? "Action refusée par le serveur." : message(e));
+            redirect.addFlashAttribute("error", message(e));
         }
         return "redirect:/admin";
     }

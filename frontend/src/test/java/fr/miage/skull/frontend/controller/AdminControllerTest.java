@@ -84,6 +84,15 @@ class AdminControllerTest {
     }
 
     @Test
+    void bannedAdmin_isLoggedOut() throws Exception {
+        when(api.listPlayers("tok")).thenThrow(new ApiException(403, null, Map.of()));
+
+        mvc.perform(get("/admin").sessionAttr(SessionKeys.ROLES, List.of("ADMIN"))
+                        .sessionAttr(SessionKeys.TOKEN, "tok"))
+                .andExpect(redirectedUrl("/login?expired"));
+    }
+
+    @Test
     void unknownPlayer_showsAMessage() throws Exception {
         when(api.setBanned(99L, true, "tok")).thenThrow(new ApiException(404, null, Map.of()));
 
