@@ -46,13 +46,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     UserDetails user = userDetailsService.loadUserByUsername(email);
 
 
-                    if (user.isAccountNonLocked()) {
-                        UsernamePasswordAuthenticationToken auth =
-                                new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                        auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(auth);
-
+                    if (!user.isAccountNonLocked()) {SecurityContextHolder.clearContext();
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN,"Ce compte a été banni");
+                        return;
                     }
+
+                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user,null,user.getAuthorities());
+                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+
+
                 } catch (UsernameNotFoundException ignored) {
                     // joueur supprimé : requête laissée anonyme, elle sera refusée (401)
                 }
