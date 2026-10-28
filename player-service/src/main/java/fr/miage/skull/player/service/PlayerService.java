@@ -9,8 +9,10 @@ import fr.miage.skull.player.mapper.PlayerMapper;
 import fr.miage.skull.player.model.Player;
 import fr.miage.skull.player.repository.PlayerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
 
 import java.util.List;
 
@@ -42,6 +44,7 @@ public class PlayerService {
         return playerMapper.toDto(savedPlayer);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public PlayerResponseDto setBannedStatus(Long playerId, boolean banned) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new RessourceNotFoundException("Joueur non trouvé"));
@@ -90,4 +93,17 @@ public class PlayerService {
         List<Player> players = playerRepository.findAll();
         return players.stream().map(playerMapper::toDto).toList();
     }
+
+    public boolean isPlayerBanned(Long playerId) {
+
+        Player player = playerRepository.findById(playerId)
+                .orElseThrow(() ->
+                        new RessourceNotFoundException(
+                                "Joueur non trouvé"
+                        )
+                );
+
+        return player.isBanned();
+    }
+
 }

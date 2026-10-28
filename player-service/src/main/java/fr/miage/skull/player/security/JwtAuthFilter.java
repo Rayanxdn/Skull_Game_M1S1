@@ -38,18 +38,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             String token = header.substring(PREFIX.length());
 
+
             if (jwtService.isTokenValid(token)) {
                 try {
                     String email = jwtService.extractEmail(token);
                     // On recharge le joueur à chaque requête : un joueur banni ou supprimé perd l'accès tout de suite
                     UserDetails user = userDetailsService.loadUserByUsername(email);
 
-                    if (user.isAccountNonLocked()) {
-                        UsernamePasswordAuthenticationToken auth =
-                                new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                        auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(auth);
+
+                    if (!user.isAccountNonLocked()) {SecurityContextHolder.clearContext();
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN,"Ce compte a été banni");
+                        return;
                     }
+
+                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user,null,user.getAuthorities());
+                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+
+
                 } catch (UsernameNotFoundException ignored) {
                     // joueur supprimé : requête laissée anonyme, elle sera refusée (401)
                 }

@@ -45,6 +45,7 @@ public class AdminInitializer implements ApplicationRunner {
         if (playerRepository.findByEmail(adminEmail).isPresent()) {
             return;
         }
+
         playerRepository.save(new Player(
                 adminEmail,
                 passwordEncoder.encode(adminPassword),

@@ -26,7 +26,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidationErrors(MethodArgumentNotValidException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "La requête contient des champs invalides");
-        problem.setTitle("Erruer de Validation");
+        problem.setTitle("Erreur de validation");
         problem.setType(URI.create("https://api.skull.miage.fr/errors/validation"));
 
         Map<String, String> errors = new HashMap<>();

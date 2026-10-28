@@ -3,6 +3,7 @@ package fr.miage.skull.player.config;
 import fr.miage.skull.player.security.JwtAuthFilter;
 import fr.miage.skull.player.security.JwtService;
 import fr.miage.skull.player.security.PlayerUserDetailsService;
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -29,18 +30,25 @@ public class SecurityConfig {
         JwtAuthFilter jwtFilter = new JwtAuthFilter(jwtService, userDetailsService);
 
         http
-                .csrf(AbstractHttpConfigurer::disable)   // inutile : pas de cookie de session, le token est dans un header
+                .csrf(AbstractHttpConfigurer::disable)   // pas de cookie de session : le token est dans un header
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                        .accessDeniedHandler((request, response, ex) ->
+                                response.sendError(HttpStatus.FORBIDDEN.value())))
                 .authorizeHttpRequests(auth -> auth
-                        // L'ordre compte : la première règle qui correspond gagne
+                        // sans cette ligne, un refus (sendError) est renvoyé vers /error, qui exige
+                        // un token : le 403 devenait un 401
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers("/ping", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/players/register").permitAll()
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/players").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/players/register").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/api/v1/players/*/ban").hasRole("ADMIN")
-                        .anyRequest().authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/players").hasRole("ADMIN")
+                        // GET/PUT/DELETE /players/{id} : connecté ici, "admin ou propriétaire" dans le contrôleur
+                        .requestMatchers(HttpMethod.GET, "/api/v1/players/*").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/players/*").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/players/*").authenticated()
+                        .anyRequest().denyAll()   // tout le reste est refusé par défaut
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
