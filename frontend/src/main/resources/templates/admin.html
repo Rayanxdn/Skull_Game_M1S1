@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Administration')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="container">
+    <h1>Administration des joueurs</h1>
+    <p class="subtitle">Un joueur banni ne peut plus se connecter et perd l'accès immédiatement.</p>
+    <p th:if="${success}" class="alert alert-success" th:text="${success}"></p>
+    <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
+
+    <section class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>ID</th><th>Pseudo</th><th>Email</th><th>Statut</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="p : ${players}">
+                    <td th:text="${p['id']}"></td>
+                    <td th:text="${p['pseudo']}"></td>
+                    <td th:text="${p['email']}"></td>
+                    <td>
+                        <span class="badge" th:text="${p['banned']} ? 'Banni' : 'Actif'"
+                              th:classappend="${p['banned']} ? 'badge-danger' : 'badge-ok'"></span>
+                    </td>
+                    <td>
+                        <form th:action="@{/admin/players/{id}/ban(id=${p['id']})}" method="post">
+                            <input type="hidden" name="banned" th:value="${!p['banned']}">
+                            <button type="submit" class="btn btn-sm"
+                                    th:classappend="${p['banned']} ? 'btn-ok' : 'btn-danger'"
+                                    th:text="${p['banned']} ? 'Débannir' : 'Bannir'"
+                                    th:disabled="${p['id'] == selfId}"></button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

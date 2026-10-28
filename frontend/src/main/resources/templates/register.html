@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Inscription - Skull</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Inscription')}"></head>
 <body>
-<main class="card">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="auth-card">
     <h1>Inscription</h1>
-    <p th:if="${error}" class="alert err" th:text="${error}"></p>
+    <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
 
     <form th:action="@{/register}" th:object="${registerForm}" method="post" novalidate>
         <label for="pseudo">Pseudo</label>
@@ -28,9 +24,9 @@
         <input id="confirmPassword" type="password" th:field="*{confirmPassword}" autocomplete="new-password">
         <p class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></p>
 
-        <button type="submit">Créer mon compte</button>
+        <button class="btn" type="submit">Créer mon compte</button>
     </form>
-    <p>Déjà inscrit ? <a th:href="@{/login}">Se connecter</a></p>
+    <p class="subtitle" style="margin-top:1.2rem">Déjà inscrit ? <a th:href="@{/login}">Se connecter</a></p>
 </main>
 </body>
 </html>

@@ -1,17 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Connexion - Skull</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Connexion')}"></head>
 <body>
-<main class="card">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="auth-card">
     <h1>Connexion</h1>
-    <p th:if="${success}" class="alert ok" th:text="${success}"></p>
-    <p th:if="${info}" class="alert info" th:text="${info}"></p>
-    <p th:if="${error}" class="alert err" th:text="${error}"></p>
+    <p th:if="${success}" class="alert alert-success" th:text="${success}"></p>
+    <p th:if="${info}" class="alert alert-info" th:text="${info}"></p>
+    <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
 
     <form th:action="@{/login}" th:object="${loginForm}" method="post" novalidate>
         <label for="email">Email</label>
@@ -22,9 +18,9 @@
         <input id="password" type="password" th:field="*{password}" autocomplete="current-password">
         <p class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
 
-        <button type="submit">Se connecter</button>
+        <button class="btn" type="submit">Se connecter</button>
     </form>
-    <p>Pas encore de compte ? <a th:href="@{/register}">S'inscrire</a></p>
+    <p class="subtitle" style="margin-top:1.2rem">Pas encore de compte ? <a th:href="@{/register}">S'inscrire</a></p>
 </main>
 </body>
 </html>

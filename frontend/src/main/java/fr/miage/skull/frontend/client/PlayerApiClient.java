@@ -9,13 +9,17 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+/** Toutes les requêtes HTTP vers le player-service passent par cette classe. */
 @Service
 public class PlayerApiClient {
 
     private static final ParameterizedTypeReference<Map<String, Object>> MAP_TYPE =
+            new ParameterizedTypeReference<>() {};
+    private static final ParameterizedTypeReference<List<Map<String, Object>>> LIST_TYPE =
             new ParameterizedTypeReference<>() {};
 
     private final RestClient client;
@@ -44,10 +48,28 @@ public class PlayerApiClient {
                 .body(MAP_TYPE));
     }
 
-    /** GET /api/v1/players/{id} : route protégée, le token part dans le header Authorization. */
+    /** GET /api/v1/players/{id} : admin ou propriétaire du compte. */
     public Map<String, Object> getPlayer(Long id, String token) {
         return call(() -> client.get()
                 .uri("/api/v1/players/{id}", id)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .retrieve()
+                .body(MAP_TYPE));
+    }
+
+    /** GET /api/v1/players : liste des joueurs, réservé à l'administrateur. */
+    public List<Map<String, Object>> listPlayers(String token) {
+        return call(() -> client.get()
+                .uri("/api/v1/players")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .retrieve()
+                .body(LIST_TYPE));
+    }
+
+    /** PUT /api/v1/players/{id}/ban?banned=true|false : bannir ou débannir, réservé à l'administrateur. */
+    public Map<String, Object> setBanned(Long id, boolean banned, String token) {
+        return call(() -> client.put()
+                .uri("/api/v1/players/{id}/ban?banned={banned}", id, banned)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .body(MAP_TYPE));

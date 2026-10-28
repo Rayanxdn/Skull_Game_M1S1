@@ -21,4 +21,8 @@ public final class MockData {
                 Map.of("date", "18/10/2026", "result", "Défaite", "score", "0 - 2"),
                 Map.of("date", "15/10/2026", "result", "Victoire", "score", "2 - 0"));
     }
+
+    public static Map<String, Object> stats() {
+        return Map.of("games", 3, "wins", 2, "ratio", 67);
+    }
 }
