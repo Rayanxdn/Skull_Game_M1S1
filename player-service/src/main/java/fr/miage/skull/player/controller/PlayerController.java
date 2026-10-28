@@ -1,5 +1,6 @@
 package fr.miage.skull.player.controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.security.access.prepost.PreAuthorize;
 import fr.miage.skull.player.dto.PlayerRegistrationDTO;
 import fr.miage.skull.player.dto.PlayerResponseDto;
@@ -38,6 +39,7 @@ public class PlayerController {
         return ResponseEntity.status(HttpStatus.CREATED).body(newPlayer);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/{id}/ban") // Endpoint pour bannir un joueur par un admin uniquement.
     @Operation(summary = "Bannir un compte")
     public ResponseEntity<PlayerResponseDto> banPlayer(@PathVariable Long id, @RequestParam boolean banned) {
@@ -45,6 +47,7 @@ public class PlayerController {
         return ResponseEntity.ok(updatePlayer);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or @playerSecurity.isOwner(#id, authentication)")
     @Operation(summary = "Afficher un compte")
@@ -53,6 +56,7 @@ public class PlayerController {
         return ResponseEntity.ok(playerDto);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or @playerSecurity.isOwner(#id, authentication)")
     @Operation(summary = "Mettre à jour une donnée d'un joueur")
@@ -63,6 +67,7 @@ public class PlayerController {
         return ResponseEntity.ok(updatePlayer);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or @playerSecurity.isOwner(#id, authentication)")
     @Operation(summary = "Supprimer un compte")
@@ -73,6 +78,7 @@ public class PlayerController {
         return ResponseEntity.noContent().build();
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping
     @Operation(summary = "lister tous les joueurs")
     @ApiResponse(responseCode = "200", description = " Liste des joueurs récuprée avec succès")

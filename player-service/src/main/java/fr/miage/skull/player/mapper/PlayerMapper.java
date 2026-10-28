@@ -18,7 +18,7 @@ public class PlayerMapper {
         return dto;
     }
 
-    public Player toEntity(PlayerResponseDto dto) {
+   /* public Player toEntity(PlayerResponseDto dto) {
         if (dto == null) {
             return null;
         }
@@ -28,5 +28,5 @@ public class PlayerMapper {
         player.setEmail(dto.getEmail());
         player.setBanned(dto.isBanned());
         return player;
-    }
+    } */
 }

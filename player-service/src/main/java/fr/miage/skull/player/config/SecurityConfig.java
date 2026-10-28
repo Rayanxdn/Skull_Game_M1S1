@@ -18,31 +18,49 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableMethodSecurity   // active les annotations @PreAuthorize
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   JwtService jwtService,
-                                                   PlayerUserDetailsService userDetailsService) throws Exception {
-
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService, PlayerUserDetailsService userDetailsService) throws Exception {
         JwtAuthFilter jwtFilter = new JwtAuthFilter(jwtService, userDetailsService);
-
         http
-                .csrf(AbstractHttpConfigurer::disable)   // inutile : pas de cookie de session, le token est dans un header
-                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // L'ordre compte : la première règle qui correspond gagne
-                        .requestMatchers("/ping", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/players/register").permitAll()
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/players").hasRole("ADMIN")
+                        .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()
+                        .requestMatchers(
+
+                                HttpMethod.POST, "/api/v1/players/register","/api/v1/auth/login").permitAll()
+
+
+                        .requestMatchers("/ping").permitAll()
+
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**","/v3/api-docs", "/swagger-ui.html").permitAll()
+
                         .requestMatchers(HttpMethod.PUT, "/api/v1/players/*/ban").hasRole("ADMIN")
-                        .anyRequest().authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/players/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/players/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/players").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/players/*").hasRole("ADMIN")
+
+                        .anyRequest().denyAll()
+
+
+
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(
+                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)
+                        )
+                        .accessDeniedHandler((request, response, exception) ->
+                                response.sendError(HttpStatus.FORBIDDEN.value())
+                        )
+                )
+                .addFilterBefore(jwtFilter,UsernamePasswordAuthenticationFilter.class
+                );
 
         return http.build();
     }
