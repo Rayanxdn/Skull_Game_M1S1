@@ -42,15 +42,10 @@ public class AdminInitializer implements ApplicationRunner {
             log.warn("ADMIN_PASSWORD non défini : le compte administrateur n'est pas créé.");
             return;
         }
-        //if (playerRepository.findByEmail(adminEmail).isPresent()) {
-        //    return;
-        //}
         if (playerRepository.findByEmail(adminEmail).isPresent()) {
-            System.out.println("ADMIN EXISTANT : " + adminEmail);
             return;
         }
 
-        System.out.println("CREATION ADMIN : " + adminEmail);
         playerRepository.save(new Player(
                 adminEmail,
                 passwordEncoder.encode(adminPassword),

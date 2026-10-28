@@ -157,6 +157,29 @@ class SecurityIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void user_cannotDeleteAnotherAccount_returns403() throws Exception {
+        long victimId = register("Victime", uniqueEmail());
+        String attackerEmail = uniqueEmail();
+        register("Attaquant", attackerEmail);
+        String attackerToken = loginToken(attackerEmail, PASSWORD);
+
+        mockMvc.perform(delete("/api/v1/players/" + victimId)
+                        .header("Authorization", bearer(attackerToken)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void user_canDeleteOwnAccount_returns204() throws Exception {
+        String email = uniqueEmail();
+        long id = register("Bob", email);
+        String token = loginToken(email, PASSWORD);
+
+        mockMvc.perform(delete("/api/v1/players/" + id)
+                        .header("Authorization", bearer(token)))
+                .andExpect(status().isNoContent());
+    }
+
     // ---------- bannissement ----------
 
     @Test

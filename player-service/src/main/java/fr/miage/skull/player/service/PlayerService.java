@@ -59,7 +59,6 @@ public class PlayerService {
         return playerMapper.toDto(player);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     public PlayerResponseDto updatePlayer(Long id, PlayerUpdateDto updateDto) {
         Player player = playerRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Joueur non trouvé"));
@@ -83,7 +82,6 @@ public class PlayerService {
         return playerMapper.toDto(updatedPlayer);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     public void deletePlayer(Long id) {
         if (!playerRepository.existsById(id)) {
             throw new RessourceNotFoundException("Joueur non trouvé");

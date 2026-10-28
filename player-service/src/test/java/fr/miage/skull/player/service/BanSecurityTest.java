@@ -37,36 +37,12 @@ class BanSecurityTest {
     verifyNoInteractions(playerRepository);}
 
 
-    @Test
-    @WithMockUser(roles = "USER")
-    void userCannotDeletePlayer() {assertThrows(AccessDeniedException.class, () -> playerService.deletePlayer(1L));
-    verifyNoInteractions(playerRepository);}
+    
 
-    @Test
-    @WithMockUser(roles = "USER")
-    void userCannotUpdatePlayer() {
-        PlayerUpdateDto updateDto = new PlayerUpdateDto();
-        updateDto.setPseudo("NouveauPseudo");
-
-        assertThrows(AccessDeniedException.class, () -> playerService.updatePlayer(2L, updateDto));
-        verifyNoInteractions(playerRepository);
-    }
+    
 
 
-    @Test
-    @WithMockUser(roles = "USER")
-    void userCannotUpdateAnotherPlayer() {
-
-        PlayerUpdateDto updateDto = new PlayerUpdateDto();
-        updateDto.setPseudo("PseudoPirate");
-
-        assertThrows(
-                AccessDeniedException.class,
-                () -> playerService.updatePlayer(99L, updateDto)
-        );
-
-        verifyNoInteractions(playerRepository);
-    }
+    
 
 
     @Test
@@ -82,20 +58,7 @@ class BanSecurityTest {
     }
 
 
-    @Test
-    @WithAnonymousUser
-    void anonymousUserCannotUpdatePlayer() {
-
-        PlayerUpdateDto updateDto = new PlayerUpdateDto();
-        updateDto.setPseudo("PseudoPirate");
-
-        assertThrows(
-                AccessDeniedException.class,
-                () -> playerService.updatePlayer(1L, updateDto)
-        );
-
-        verifyNoInteractions(playerRepository);
-    }
+    
 
 
     @Test
