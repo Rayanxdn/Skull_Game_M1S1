@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${title} + ' – Skull'">Skull</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script>window.addEventListener('pageshow', function (e) { if (e.persisted) { window.location.reload(); } });</script>
 </head>
 <body>
 <nav th:fragment="navbar" class="navbar">

@@ -2,7 +2,7 @@ package fr.miage.skull.frontend.form;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 
 public class RegisterForm {
 
@@ -14,7 +14,7 @@ public class RegisterForm {
     private String email;
 
     @NotBlank(message = "Le mot de passe est obligatoire")
-    @Size(min = 6, message = "Le mot de passe doit contenir au moins 6 caractères")
+    @Pattern(regexp = "^\\s*$|.{6,}", message = "Le mot de passe doit contenir au moins 6 caractères")
     private String password;
 
     @NotBlank(message = "Confirme ton mot de passe")
