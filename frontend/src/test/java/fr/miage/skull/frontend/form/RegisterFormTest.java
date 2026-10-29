@@ -27,7 +27,7 @@ class RegisterFormTest {
 
     @Test
     void emptyForm_hasViolationsOnEveryField() {
-        assertEquals(5, validator.validate(form("", "", "", "")).size()); // 4 @NotBlank + @Size du mot de passe
+        assertEquals(4, validator.validate(form("", "", "", "")).size()); // un seul message par champ vide
     }
 
     @Test

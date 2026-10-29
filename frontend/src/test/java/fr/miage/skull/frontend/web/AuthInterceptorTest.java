@@ -27,6 +27,9 @@ class AuthInterceptorTest {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.getSession(true).setAttribute(SessionKeys.TOKEN, "jwt");
 
-        assertTrue(interceptor.preHandle(request, new MockHttpServletResponse(), null));
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        assertTrue(interceptor.preHandle(request, response, null));
+        assertEquals("no-store, no-cache, must-revalidate", response.getHeader("Cache-Control"));
     }
 }
