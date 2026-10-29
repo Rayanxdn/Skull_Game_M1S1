@@ -58,6 +58,7 @@ Les scénarios T01 à T35 portent sur l'API, les scénarios T36 à T51 sur le fr
 - Le service répond correctement aux cas nominaux et aux erreurs de saisie (400, 401, 403, 404, 409).
 - Les accès non autorisés sont refusés : aucun accès à un compte tiers, aucun ban par un simple joueur, aucune connexion d'un joueur banni.
 - Les données sont **persistantes** après redémarrage des conteneurs (test T35).
+- Les six anomalies relevées sont corrigées et retestées.
 - Le front-end affiche des messages clairs pour chaque erreur (email invalide, mot de passe court, champs vides, email déjà utilisé, confirmation différente, mauvais identifiants, compte banni) et protège les pages réservées.
 
 ## 6. Anomalies
@@ -68,14 +69,14 @@ Les scénarios T01 à T35 portent sur l'API, les scénarios T36 à T51 sur le fr
 | A02 | Liste des joueurs : 401 au lieu de 403 pour un joueur connecté | Moyenne | #15 | Corrigée le 28/10, retestée le 29/10 |
 | A03 | Ban par un joueur : 401 au lieu de 403 | Moyenne | #16 | Corrigée le 28/10, retestée le 29/10 |
 | A04 | Joueur banni avec un token valide : 401 au lieu de 403 | Moyenne | #18 | Corrigée le 28/10, retestée le 29/10 |
-| A05 | Inscription, formulaire vide : deux messages cumulés sous le mot de passe | Faible | #20 | Ouverte |
-| A06 | Le bouton « Précédent » réaffiche temporairement le tableau de bord après la déconnexion | Faible | #21 | Ouverte |
+| A05 | Inscription, formulaire vide : deux messages cumulés sous le mot de passe | Faible | #20 | Corrigée et retestée le 29/10 |
+| A06 | Le bouton « Précédent » réaffiche temporairement le tableau de bord après la déconnexion | Faible | #21 | Corrigée et retestée le 29/10 |
 
-Pour A06, le serveur redirige vers la connexion dès la première interaction avec la page : il s'agit d'un affichage conservé en mémoire par le navigateur, sans accès réel aux données.
+Les six anomalies sont corrigées. Avant sa correction, A06 réaffichait le tableau de bord conservé en mémoire par le navigateur, sans accès réel aux données ; après correction, « Précédent » affiche la page de connexion.
 
 ## 7. Limites et suites
 
 - Les statistiques, parties ouvertes et historique du tableau de bord sont **simulés** ; ils ne sont pas testés fonctionnellement.
 - Les services `game`, `ladder` et `market` n'ont pas encore d'endpoints métier : seul `/ping` est testé.
 - Les tests fonctionnels sont manuels ; une automatisation (collection Postman exécutable) pourra être envisagée pour les lots suivants.
-- Les anomalies A05 et A06 restent à corriger ; leurs tests (T39 et T48) seront rejoués après correction.
+- Après les corrections du front (29/10/2026), les retests ont été **ciblés** sur les tests concernés (T38, T39 et T48) ; les autres tests du front n'ont pas été rejoués à la main, et les tests automatiques du front servent de contrôle complémentaire.
