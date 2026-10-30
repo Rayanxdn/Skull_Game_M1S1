@@ -10,7 +10,6 @@ import fr.miage.skull.player.repository.PlayerRepository;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import java.util.Optional;
 import fr.miage.skull.player.dto.PlayerUpdateDto;
-import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.junit.jupiter.api.BeforeEach;
 
 import static org.mockito.Mockito.*;

@@ -8,7 +8,6 @@ import fr.miage.skull.player.exception.RessourceNotFoundException;
 import fr.miage.skull.player.mapper.PlayerMapper;
 import fr.miage.skull.player.model.Player;
 import fr.miage.skull.player.repository.PlayerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;

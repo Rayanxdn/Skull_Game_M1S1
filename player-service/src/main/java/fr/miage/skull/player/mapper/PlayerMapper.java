@@ -18,15 +18,4 @@ public class PlayerMapper {
         return dto;
     }
 
-   /* public Player toEntity(PlayerResponseDto dto) {
-        if (dto == null) {
-            return null;
-        }
-        Player player = new Player();
-        player.setId(dto.getId());
-        player.setPseudo(dto.getPseudo());
-        player.setEmail(dto.getEmail());
-        player.setBanned(dto.isBanned());
-        return player;
-    } */
 }
