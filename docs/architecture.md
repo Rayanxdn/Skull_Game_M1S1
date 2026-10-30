@@ -106,14 +106,13 @@ Les endpoints de bannissement et d'administration du Membre 5 sont désormais in
 - **Qualification fonctionnelle** : comportement observé de l'extérieur, avec Postman pour l'API et le navigateur pour le front-end, sans lire le code.
 - **51 scénarios exécutés : 51 OK, 0 KO** (35 sur l'API, 16 sur le front-end). Détail et preuves : `docs/Plan_de_tests_Lot1_Complet.xlsx` et `docs/preuves/`.
 - **Qualification structurelle** : 44 tests automatiques (22 pour le `player-service`, 22 pour le front-end) exécutés le 29/10/2026 par Rania Zakraf, tous verts (captures `TA01` et `TA02` dans `docs/preuves/`).
-- **6 anomalies signalées** :
+- **6 anomalies signalées, toutes corrigées** :
   - A01 à A04 (#14, #15, #16, #18) : corrigées le 28/10/2026 et retestées le 29/10/2026 (titre « Erreur de Validation », puis 403 à la place de 401 sur les routes réservées).
-  - A05 (#20) : deux messages cumulés sous le champ mot de passe de l'inscription (gravité faible), ouverte.
-  - A06 (#21) : le bouton « Précédent » du navigateur réaffiche temporairement le tableau de bord après la déconnexion ; la première interaction renvoie vers la connexion (gravité faible), ouverte.
+  - A05 (#20) : deux messages cumulés sous le champ mot de passe de l'inscription (gravité faible), corrigée et retestée le 29/10/2026 (test T39).
+  - A06 (#21) : le bouton « Précédent » du navigateur réaffichait le tableau de bord après la déconnexion (gravité faible), corrigée et retestée le 29/10/2026 (test T48) : « Précédent » affiche désormais la page de connexion.
 
 ## 10. Points à confirmer
 
 - **Version de Spring Boot** : d'après un message du groupe (28/10), le `player-service` utilise la version 3.3.3 alors que les autres modules utilisent la 4.1.x ; à vérifier dans les `pom.xml` et à harmoniser si besoin.
 - **Adresse de l'interface Swagger** du `player-service`.
 - **Données simulées du tableau de bord** : à remplacer par les données du `ladder-service` lors du lot concerné.
-- **Anomalies A05 et A06** : correction à prévoir côté front-end (pistes : un seul message par champ ; en-tête `Cache-Control: no-store` sur les pages protégées).
