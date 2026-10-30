@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' – Skull'">Skull</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script>window.addEventListener('pageshow', function (e) { if (e.persisted) { window.location.reload(); } });</script>
+</head>
+<body>
+<nav th:fragment="navbar" class="navbar">
+    <a class="brand" th:href="@{/}">SKULL<span>.</span></a>
+    <div class="nav-links" th:if="${loggedIn}">
+        <a th:href="@{/dashboard}">Tableau de bord</a>
+        <a th:if="${isAdmin}" th:href="@{/admin}">Administration</a>
+    </div>
+    <div class="nav-right">
+        <th:block th:if="${loggedIn}">
+            <span th:text="${currentPseudo}">pseudo</span>
+            <span class="badge badge-admin" th:if="${isAdmin}">ADMIN</span>
+            <form th:action="@{/logout}" method="post">
+                <button class="btn btn-ghost btn-sm" type="submit">Se déconnecter</button>
+            </form>
+        </th:block>
+        <th:block th:unless="${loggedIn}">
+            <a th:href="@{/login}">Connexion</a>
+            <a class="btn btn-sm" th:href="@{/register}">Inscription</a>
+        </th:block>
+    </div>
+</nav>
+</body>
+</html>

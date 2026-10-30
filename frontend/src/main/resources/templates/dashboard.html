@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Tableau de bord')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="container">
+    <h1>Salut, <span th:text="${pseudo}">joueur</span></h1>
+    <p class="subtitle">Rejoins une partie ou revois tes dernières manches.</p>
+    <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
+
+    <div class="stats">
+        <div class="stat"><div class="value" th:text="${stats['games']}">0</div><div class="label">Parties jouées</div></div>
+        <div class="stat"><div class="value" th:text="${stats['wins']}">0</div><div class="label">Victoires</div></div>
+        <div class="stat">
+            <div class="value"><span th:text="${stats['ratio']}">0</span>%</div>
+            <div class="label">Ratio de victoires</div>
+        </div>
+    </div>
+    <p class="mock">Statistiques simulées, en attendant le ladder-service.</p>
+
+    <section class="panel">
+        <h2>Parties ouvertes <span class="mock">(données simulées)</span></h2>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Partie</th><th>Joueurs</th><th>IA</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="g : ${games}">
+                    <td th:text="${g['name']}"></td>
+                    <td>
+                        <span th:text="${g['players']} + ' / ' + ${g['max']}"></span>
+                        <span class="progress"><i th:style="'width:' + (${g['players']} * 100 / ${g['max']}) + '%'"></i></span>
+                    </td>
+                    <td th:text="${g['ai']}"></td>
+                    <td><button class="btn btn-sm" type="button" disabled title="Disponible avec le game-service">Rejoindre</button></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Mon historique <span class="mock">(données simulées)</span></h2>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Date</th><th>Résultat</th><th>Score</th></tr></thead>
+                <tbody>
+                <tr th:each="h : ${history}">
+                    <td th:text="${h['date']}"></td>
+                    <td><span th:text="${h['result']}" th:classappend="${h['result'] == 'Victoire'} ? 'win' : 'lose'"></span></td>
+                    <td th:text="${h['score']}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="panel" th:if="${isAdmin}">
+        <h2>Administration</h2>
+        <p class="subtitle">Gère les comptes des joueurs : bannissement et débannissement.</p>
+        <a class="btn btn-sm" th:href="@{/admin}">Ouvrir l'administration</a>
+    </section>
+</main>
+</body>
+</html>

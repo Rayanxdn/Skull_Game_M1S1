@@ -1,0 +1,77 @@
+x-service-env: &service-env
+  SERVER_PORT: 8080
+  SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/skull
+  SPRING_DATASOURCE_USERNAME: ${DB_USER}
+  SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+  JWT_SECRET: ${JWT_SECRET}
+  JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-3600000}
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: skull
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d skull"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  player-service:
+    build: ./player-service
+    ports:
+      - "8081:8080"
+    environment:
+      <<: *service-env
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_PSEUDO: ${ADMIN_PSEUDO:-Admin}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  game-service:
+    build: ./game-service
+    ports:
+      - "8082:8080"
+    environment: *service-env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  ladder-service:
+    build: ./ladder-service
+    ports:
+      - "8083:8080"
+    environment: *service-env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  market-service:
+    build: ./market-service
+    ports:
+      - "8084:8080"
+    environment: *service-env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_PORT: 8080
+      PLAYER_API_URL: http://player-service:8080
+    depends_on:
+      - player-service
+
+volumes:
+  db_data:
