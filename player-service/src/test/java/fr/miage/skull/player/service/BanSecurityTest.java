@@ -7,7 +7,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import fr.miage.skull.player.model.Player;
 import fr.miage.skull.player.repository.PlayerRepository;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.util.Optional;
 import fr.miage.skull.player.dto.PlayerUpdateDto;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +23,7 @@ class BanSecurityTest {
     @Autowired
     private PlayerService playerService;
 
-    @MockBean
+    @MockitoBean
     private PlayerRepository playerRepository;
     @BeforeEach
     void resetRepositoryInteractions() {
