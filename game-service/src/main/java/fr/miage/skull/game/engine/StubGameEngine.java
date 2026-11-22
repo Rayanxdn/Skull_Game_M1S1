@@ -1,5 +1,6 @@
 package fr.miage.skull.game.engine;
 
+import fr.miage.skull.game.exception.IllegalMoveException;
 import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
