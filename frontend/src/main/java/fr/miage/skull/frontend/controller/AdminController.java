@@ -52,6 +52,7 @@ public class AdminController {
         }
         try {
             model.addAttribute("players", api.listPlayers(token(session)));
+            model.addAttribute("reports", api.listReports(token(session)));
         } catch (ApiException e) {
             if (e.getStatus() == 401 || e.getStatus() == 403) {   // token expiré ou compte banni
                 session.invalidate();

@@ -36,6 +36,66 @@
             </table>
         </div>
     </section>
+
+    <section class="panel">
+        <h2>Signalements des joueurs</h2>
+
+        <p th:if="${reports == null}">
+            Impossible de charger les signalements.
+        </p>
+
+        <p th:if="${reports != null and #lists.isEmpty(reports)}">
+            Aucun signalement pour le moment.
+        </p>
+
+        <div class="table-wrap"
+             th:if="${reports != null and !#lists.isEmpty(reports)}">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Joueur signalé</th>
+                    <th>Signalé par</th>
+                    <th>Motif</th>
+                    <th>Partie</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${reports}">
+                    <td th:text="${r['id']}"></td>
+                    <td th:text="${r['reportedPlayerPseudo']}"></td>
+                    <td th:text="${r['reporterPseudo']}"></td>
+                    <td th:text="${r['reason']}"></td>
+                    <td th:text="${r['gameId'] != null ? r['gameId'] : '-'}"></td>
+                    <td th:text="${r['createdAt']}"></td>
+                    <td>
+                        <span class="badge"
+                              th:text="${r['status'] == 'OPEN' ? 'Ouvert' : 'Traité'}"
+                              th:classappend="${r['status'] == 'OPEN' ? 'badge-danger' : 'badge-ok'}">
+                        </span>
+                    </td>
+                    <td>
+                        <form th:if="${r['status'] == 'OPEN' and r['reportedPlayerId'] != selfId}"
+                              th:action="@{/admin/players/{id}/ban(id=${r['reportedPlayerId']})}"
+                              method="post">
+                            <input type="hidden" name="banned" value="true">
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                Bannir
+                            </button>
+                        </form>
+                        <span th:if="${r['status'] == 'TREATED'}">
+                            Traité
+                        </span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
 </main>
 </body>
 </html>
