@@ -7,6 +7,7 @@ import fr.miage.skull.game.dto.MoveRequest;
 import fr.miage.skull.game.entity.GameStatus;
 import fr.miage.skull.game.security.AuthPlayer;
 import fr.miage.skull.game.service.GameService;
+import fr.miage.skull.game.service.Themes;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -101,6 +102,14 @@ public class GameController {
         return ResponseEntity.ok(gameView);
     }
 
+    /** Motifs de disques qu'un joueur peut choisir (les autres valeurs sont refusées). */
+    @GetMapping("/themes")
+    @Operation(summary = "Lister les motifs de disques disponibles")
+    @ApiResponse(responseCode = "200", description = "Motifs utilisables à la création ou pour rejoindre")
+    public ResponseEntity<List<String>> listThemes() {
+        return ResponseEntity.ok(Themes.BASE);
+    }
+
     /**
      * Inscrit le joueur authentifié dans une partie ouverte.
      *
@@ -116,7 +125,7 @@ public class GameController {
     @ApiResponse(responseCode = "409", description = "Partie complète ou déjà démarrée")
     public ResponseEntity<GameViewResponse> joinGame(
             @PathVariable Long id,
-            @RequestBody(required = false) JoinGameRequest request,
+            @Valid @RequestBody(required = false) JoinGameRequest request,
             @AuthenticationPrincipal AuthPlayer player
     ) {
         GameViewResponse gameView = gameService.joinGame(id, request, player.id(), resolveDisplayName(player));
@@ -195,13 +204,17 @@ public class GameController {
     }
 
     /**
-     * Déduit un nom d'affichage lisible à partir de l'adresse e-mail contenue dans le jeton JWT,
-     * ou génère un libellé par défaut basé sur l'identifiant du joueur.
+     * Pseudo affiché à la table : celui du jeton (choisi par le joueur au player-service),
+     * sinon le début de l'email pour un ancien jeton, sinon un libellé par défaut.
+     * Le client ne peut pas imposer un autre nom : il ne vient jamais du corps de la requête.
      *
      * @param player joueur authentifié issu du contexte de sécurité
-     * @return le pseudonyme déduit pour l'affichage autour de la table
+     * @return le pseudonyme affiché autour de la table
      */
     private String resolveDisplayName(AuthPlayer player) {
+        if (player.pseudo() != null && !player.pseudo().isBlank()) {
+            return player.pseudo();
+        }
         if (player.email() != null && player.email().contains("@")) {
             return player.email().substring(0, player.email().indexOf('@'));
         }

@@ -1,11 +1,12 @@
 package fr.miage.skull.game.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
+/** Motifs choisis pour rejoindre ; absents, ils sont tirés au hasard. */
 public record JoinGameRequest(
-        @NotBlank(message = "Le pseudo est obligatoire")
-        String displayName,
-
+        @Size(max = 30, message = "Nom de motif trop long")
         String flowerTheme,
+
+        @Size(max = 30, message = "Nom de motif trop long")
         String skullTheme
 ) {}

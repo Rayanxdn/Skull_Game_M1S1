@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 /**
@@ -44,9 +45,6 @@ import java.util.Random;
 @RequiredArgsConstructor
 @Transactional
 public class GameService {
-
-    /** Thème visuel par défaut appliqué lorsqu'aucun motif n'est spécifié. */
-    private static final String DEFAULT_THEME = "CLASSIC";
 
     /** Filet de sécurité : une partie jouée par des IA seules dure moins de 600 coups (mesuré sur 8 000 parties). */
     private static final int MAX_AI_CHAIN_STEPS = 5000;
@@ -464,8 +462,8 @@ public class GameService {
      *
      * @param playerId    identifiant utilisateur du joueur
      * @param displayName pseudonyme affiché autour de la table
-     * @param flowerTheme thème choisi pour les fleurs (ou défaut si vide)
-     * @param skullTheme  thème choisi pour le crâne (ou défaut si vide)
+     * @param flowerTheme motif choisi pour les fleurs (tiré au hasard si vide)
+     * @param skullTheme  motif choisi pour le crâne (tiré au hasard si vide)
      * @return une instance {@link GameParticipant} configurée pour un humain
      */
     private GameParticipant buildHumanParticipant(
@@ -479,8 +477,8 @@ public class GameService {
         p.setDisplayName(displayName);
         p.setAi(false);
         p.setForfeited(false);
-        p.setFlowerTheme(isBlank(flowerTheme) ? DEFAULT_THEME : flowerTheme);
-        p.setSkullTheme(isBlank(skullTheme) ? DEFAULT_THEME : skullTheme);
+        p.setFlowerTheme(resolveTheme(flowerTheme));
+        p.setSkullTheme(resolveTheme(skullTheme));
         return p;
     }
 
@@ -496,8 +494,8 @@ public class GameService {
         p.setDisplayName("IA #" + aiIndex);
         p.setAi(true);
         p.setForfeited(false);
-        p.setFlowerTheme(DEFAULT_THEME);
-        p.setSkullTheme(DEFAULT_THEME);
+        p.setFlowerTheme(Themes.random(random));
+        p.setSkullTheme(Themes.random(random));
         return p;
     }
 
@@ -530,6 +528,18 @@ public class GameService {
      */
     private DiscType toEngineDisc(Disc type) {
         return type == Disc.SKULL ? DiscType.SKULL : DiscType.FLOWER;
+    }
+
+    /** Motif vide : tiré au hasard. Motif hors de la liste fermée : refusé (400). */
+    private String resolveTheme(String theme) {
+        if (isBlank(theme)) {
+            return Themes.random(random);
+        }
+        String normalized = theme.trim().toUpperCase(Locale.ROOT);
+        if (!Themes.isKnown(normalized)) {
+            throw new IllegalArgumentException("Motif inconnu. Motifs disponibles : " + String.join(", ", Themes.BASE) + ".");
+        }
+        return normalized;
     }
 
     /**
