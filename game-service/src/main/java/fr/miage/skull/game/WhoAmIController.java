@@ -14,6 +14,6 @@ public class WhoAmIController {
             security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/api/v1/whoami")
     public String whoami(@AuthenticationPrincipal AuthPlayer player) {
-        return player.email() + " (id=" + player.id() + ") roles=" + player.roles();
+        return player.email() + " (id=" + player.id() + ", pseudo=" + player.pseudo() + ") roles=" + player.roles();
     }
 }

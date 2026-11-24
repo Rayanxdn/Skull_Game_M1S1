@@ -39,7 +39,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 Long id = ((Number) claims.get("id")).longValue();
                 List<String> roles = claims.get("roles", List.class);
-                AuthPlayer player = new AuthPlayer(id, claims.getSubject(), roles);
+                String pseudo = claims.get("pseudo", String.class);
+                AuthPlayer player = new AuthPlayer(id, claims.getSubject(), pseudo, roles);
 
                 // "USER" devient l'autorité ROLE_USER, comme dans le player-service
                 List<GrantedAuthority> authorities = roles.stream()

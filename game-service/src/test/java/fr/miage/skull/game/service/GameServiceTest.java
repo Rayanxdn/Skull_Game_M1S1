@@ -122,7 +122,7 @@ class GameServiceTest {
 
     @Test
     void createGame_valide_creeUnePartieOuverteAvecLeCreateurEtLesIA() {
-        CreateGameRequest request = new CreateGameRequest("Rania", 4, 2, null, null);
+        CreateGameRequest request = new CreateGameRequest(4, 2, null, null);
 
         GameViewResponse result = gameService.createGame(request, 10L, "Rania");
 
@@ -148,21 +148,29 @@ class GameServiceTest {
     }
 
     @Test
-    void createGame_sansTheme_utiliseLeThemeParDefaut() {
-        CreateGameRequest request = new CreateGameRequest("Rania", 3, 0, " ", null);
+    void createGame_sansTheme_tireUnMotifAuHasardDansLaListe() {
+        CreateGameRequest request = new CreateGameRequest(3, 0, " ", null);
 
         gameService.createGame(request, 10L, "Rania");
 
         ArgumentCaptor<Game> captor = ArgumentCaptor.forClass(Game.class);
         verify(gameRepository).save(captor.capture());
         GameParticipant creator = captor.getValue().getParticipants().get(0);
-        assertEquals("CLASSIC", creator.getFlowerTheme());
-        assertEquals("CLASSIC", creator.getSkullTheme());
+        assertTrue(Themes.BASE.contains(creator.getFlowerTheme()));
+        assertTrue(Themes.BASE.contains(creator.getSkullTheme()));
+    }
+
+    @Test
+    void createGame_motifInconnu_refuse() {
+        CreateGameRequest request = new CreateGameRequest(3, 2, "ROSE", null);
+
+        assertThrows(IllegalArgumentException.class, () -> gameService.createGame(request, 10L, "Rania"));
+        verify(gameRepository, never()).save(any());
     }
 
     @Test
     void createGame_pseudoNul_utiliseUnNomParDefaut() {
-        CreateGameRequest request = new CreateGameRequest("x", 3, 0, null, null);
+        CreateGameRequest request = new CreateGameRequest(3, 0, null, null);
 
         gameService.createGame(request, 10L, null);
 
@@ -173,7 +181,7 @@ class GameServiceTest {
 
     @Test
     void createGame_moinsDeTroisJoueursMax_refuse() {
-        CreateGameRequest request = new CreateGameRequest("Rania", 2, 0, null, null);
+        CreateGameRequest request = new CreateGameRequest(2, 0, null, null);
 
         assertThrows(IllegalArgumentException.class, () -> gameService.createGame(request, 10L, "Rania"));
         verify(gameRepository, never()).save(any());
@@ -181,7 +189,7 @@ class GameServiceTest {
 
     @Test
     void createGame_plusDeSixJoueurs_refuse() {
-        CreateGameRequest request = new CreateGameRequest("Rania", 7, 0, null, null);
+        CreateGameRequest request = new CreateGameRequest(7, 0, null, null);
 
         assertThrows(IllegalArgumentException.class, () -> gameService.createGame(request, 10L, "Rania"));
         verify(gameRepository, never()).save(any());
@@ -189,7 +197,7 @@ class GameServiceTest {
 
     @Test
     void createGame_autantDIAQueDeJoueursMax_refuse() {
-        CreateGameRequest request = new CreateGameRequest("Rania", 4, 4, null, null);
+        CreateGameRequest request = new CreateGameRequest(4, 4, null, null);
 
         assertThrows(IllegalArgumentException.class, () -> gameService.createGame(request, 10L, "Rania"));
         verify(gameRepository, never()).save(any());
@@ -197,7 +205,7 @@ class GameServiceTest {
 
     @Test
     void createGame_nombreDIANegatif_refuse() {
-        CreateGameRequest request = new CreateGameRequest("Rania", 4, -1, null, null);
+        CreateGameRequest request = new CreateGameRequest(4, -1, null, null);
 
         assertThrows(IllegalArgumentException.class, () -> gameService.createGame(request, 10L, "Rania"));
     }
@@ -253,7 +261,7 @@ class GameServiceTest {
     void joinGame_partieOuverte_ajouteLeJoueur() {
         Game game = game(GameStatus.OPEN, 10L, 4, human(1L, 10L, "A"));
         gameExists(game);
-        JoinGameRequest request = new JoinGameRequest("B", "ROSE", "NOIR");
+        JoinGameRequest request = new JoinGameRequest("muertos", "CELTIQUE");
 
         GameViewResponse result = gameService.joinGame(GAME_ID, request, 20L, "B");
 
@@ -261,8 +269,8 @@ class GameServiceTest {
         assertEquals(2, game.getParticipants().size());
         GameParticipant added = game.getParticipants().get(1);
         assertEquals(20L, added.getPlayerId());
-        assertEquals("ROSE", added.getFlowerTheme());
-        assertEquals("NOIR", added.getSkullTheme());
+        assertEquals("MUERTOS", added.getFlowerTheme());
+        assertEquals("CELTIQUE", added.getSkullTheme());
         verify(gameRepository).save(game);
     }
 
