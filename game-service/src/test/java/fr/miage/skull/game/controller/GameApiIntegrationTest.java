@@ -100,6 +100,7 @@ class GameApiIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"))
                 .andExpect(jsonPath("$.phase").value("INITIAL_PLACEMENT"))
+                .andExpect(jsonPath("$.roundNumber").value(1))
                 .andExpect(jsonPath("$.currentTurnPlayerId").value(me))
                 .andExpect(jsonPath("$.players[0].myHand.length()").value(4));
 
@@ -116,7 +117,13 @@ class GameApiIntegrationTest {
                 .andExpect(jsonPath("$.players[0].myStack[0]").value("FLOWER"))
                 .andExpect(jsonPath("$.players[1].stackCount").value(1))
                 .andExpect(jsonPath("$.players[1].myHand").doesNotExist())
-                .andExpect(jsonPath("$.players[1].myStack").doesNotExist());
+                .andExpect(jsonPath("$.players[1].myStack").doesNotExist())
+                .andExpect(jsonPath("$.discsOnTable").value(3))
+                .andExpect(jsonPath("$.recentEvents.length()").value(4))
+                .andExpect(jsonPath("$.recentEvents[0].type").value("NEW_ROUND"))
+                .andExpect(jsonPath("$.recentEvents[1].type").value("DISC_PLACED"))
+                .andExpect(jsonPath("$.recentEvents[1].actorName").value("Dana"))
+                .andExpect(jsonPath("$.recentEvents[2].actorName").value("IA #1"));
     }
 
     @Test

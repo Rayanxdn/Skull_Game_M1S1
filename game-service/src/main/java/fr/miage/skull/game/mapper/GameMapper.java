@@ -2,8 +2,11 @@ package fr.miage.skull.game.mapper;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.miage.skull.game.dto.GameEventView;
 import fr.miage.skull.game.dto.GameViewResponse;
 import fr.miage.skull.game.dto.PlayerViewDto;
+import fr.miage.skull.game.engine.DiscType;
+import fr.miage.skull.game.engine.GameEvent;
 import fr.miage.skull.game.engine.GameState;
 import fr.miage.skull.game.engine.PlayerState;
 import fr.miage.skull.game.entity.Game;
@@ -63,8 +66,9 @@ public class GameMapper {
     /**
      * Construit une vue filtrée de la partie adaptée au joueur qui la consulte.
      * <p>
-     * Les informations publiques (phase, enchères, scores, nombre de disques) sont visibles par tous,
-     * tandis que le détail des disques en main et sur la pile n'est inclus que pour le joueur connecté.
+     * Les informations publiques (phase, enchères, scores, nombre de disques, disques déjà retournés,
+     * disques perdus, journal) sont visibles par tous, tandis que le détail des disques en main et sur
+     * la pile n'est inclus que pour le joueur connecté.
      * </p>
      *
      * @param game           l'entité JPA représentant la partie
@@ -83,6 +87,12 @@ public class GameMapper {
                 .map(p -> toPlayerView(p, stateByParticipantId.get(String.valueOf(p.getId())), viewerPlayerId))
                 .toList();
 
+        Map<String, String> namesBySeat = game.getParticipants().stream()
+                .collect(Collectors.toMap(p -> String.valueOf(p.getId()), GameParticipant::getDisplayName));
+        List<GameEventView> events = state != null
+                ? state.recentEvents().stream().map(e -> toEventView(e, namesBySeat)).toList()
+                : List.of();
+
         return new GameViewResponse(
                 game.getId(),
                 game.getStatus(),
@@ -95,7 +105,12 @@ public class GameMapper {
                 state != null ? state.currentBid() : 0,
                 state != null ? parseLongOrNull(state.challengerId()) : null,
                 game.getCreatedAt(),
-                playerViews
+                playerViews,
+                state != null ? state.roundNumber() : 0,
+                state != null ? state.revealedFlowersCount() : 0,
+                state != null ? state.discsOnTable() : 0,
+                state != null ? parseLongOrNull(state.winnerId()) : null,
+                events
         );
     }
 
@@ -121,6 +136,8 @@ public class GameMapper {
         boolean passed = pState != null && pState.passedInRound();
         int handCount = (pState != null && pState.hand() != null) ? pState.hand().size() : 0;
         int stackCount = (pState != null && pState.stack() != null) ? pState.stack().size() : 0;
+        List<DiscType> revealed = pState != null ? pState.revealed() : List.of();
+        int lostDiscs = pState != null ? pState.lostDiscsCount() : 0;
 
         return new PlayerViewDto(
                 participant.getId(),
@@ -137,7 +154,28 @@ public class GameMapper {
                 handCount,
                 stackCount,
                 isViewer && pState != null ? pState.hand() : null,
-                isViewer && pState != null ? pState.stack() : null
+                isViewer && pState != null ? pState.stack() : null,
+                revealed,
+                lostDiscs
+        );
+    }
+
+    /**
+     * Traduit un événement du moteur pour l'affichage : les identifiants de siège deviennent des
+     * nombres et sont accompagnés du nom affiché, pour que le front n'ait rien à recalculer.
+     *
+     * @param event       événement enregistré par le moteur
+     * @param namesBySeat noms affichés indexés par identifiant de siège
+     * @return l'événement prêt à afficher
+     */
+    private GameEventView toEventView(GameEvent event, Map<String, String> namesBySeat) {
+        return new GameEventView(
+                event.type().name(),
+                parseLongOrNull(event.playerId()),
+                event.playerId() != null ? namesBySeat.get(event.playerId()) : null,
+                parseLongOrNull(event.targetId()),
+                event.targetId() != null ? namesBySeat.get(event.targetId()) : null,
+                event.value()
         );
     }
 
