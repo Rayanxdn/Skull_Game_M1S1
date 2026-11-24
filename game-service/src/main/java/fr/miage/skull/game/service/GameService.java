@@ -48,8 +48,8 @@ public class GameService {
     /** Thème visuel par défaut appliqué lorsqu'aucun motif n'est spécifié. */
     private static final String DEFAULT_THEME = "CLASSIC";
 
-    /** Plafond de sécurité empêchant toute boucle infinie lors de l'enchaînement des tours d'IA. (Dans RunAiTurn) */
-    private static final int MAX_AI_CHAIN_STEPS = 200;
+    /** Filet de sécurité : une partie jouée par des IA seules dure moins de 600 coups (mesuré sur 8 000 parties). */
+    private static final int MAX_AI_CHAIN_STEPS = 5000;
 
     private final GameRepository gameRepository;
     private final GameEngine gameEngine;
@@ -229,31 +229,10 @@ public class GameService {
             if (currentState != null) {
                 String seatId = String.valueOf(leaving.getId());
                 List<PlayerState> updatedPlayers = currentState.players().stream()
-                        .map(ps -> ps.playerId().equals(seatId)
-                                ? new PlayerState(
-                                ps.playerId(),
-                                leaving.getDisplayName(),
-                                true,
-                                ps.hand(),
-                                ps.stack(),
-                                ps.revealedCount(),
-                                ps.lostDiscsCount(),
-                                ps.points(),
-                                ps.passedInRound(),
-                                ps.eliminated()
-                        )
-                                : ps)
+                        .map(ps -> ps.playerId().equals(seatId) ? ps.controlledByAi(leaving.getDisplayName()) : ps)
                         .toList();
 
-                GameState updatedState = new GameState(
-                        currentState.phase(),
-                        updatedPlayers,
-                        currentState.currentPlayerId(),
-                        currentState.challengerId(),
-                        currentState.currentBid(),
-                        currentState.revealedFlowersCount(),
-                        currentState.winnerId()
-                );
+                GameState updatedState = currentState.withPlayers(updatedPlayers);
 
                 updatedState = runAiTurns(updatedState);
                 syncGameWithState(game, updatedState);

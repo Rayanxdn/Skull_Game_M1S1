@@ -2,15 +2,34 @@ package fr.miage.skull.game.engine;
 
 import java.util.List;
 
-public record PlayerState (
+/**
+ * stack : disques encore face cachée (le dernier élément est le dessus de la pile).
+ * revealed : disques de ce joueur retournés pendant le défi en cours, visibles de tous.
+ */
+public record PlayerState(
         String playerId,
         String displayName,
         boolean isAi,
-        List<DiscType> hand,       // Disqeus en main
-        List<DiscType> stack,      // Pile posée devant le joueur (le dernier élément = le sommet)
-        int revealedCount,         // Nombre de disques déjà retournés pendant un défi
-        int lostDiscsCount,        // Nombre de disques définitivement perdus
-        int points,                // Défis réussis (victoire à 2)
-        boolean passedInRound,     // S'est retiré des enchères en cours
-        boolean eliminated         // N'a plus aucun disque (4 perdus)
-){}
+        List<DiscType> hand,
+        List<DiscType> stack,
+        List<DiscType> revealed,
+        int lostDiscsCount,
+        int points,
+        boolean passedInRound,
+        boolean eliminated
+) {
+    public PlayerState {
+        hand = hand == null ? List.of() : List.copyOf(hand);
+        stack = stack == null ? List.of() : List.copyOf(stack);
+        revealed = revealed == null ? List.of() : List.copyOf(revealed);
+    }
+
+    public int discCount() {
+        return hand.size() + stack.size() + revealed.size();
+    }
+
+    public PlayerState controlledByAi(String newDisplayName) {
+        return new PlayerState(playerId, newDisplayName, true, hand, stack, revealed,
+                lostDiscsCount, points, passedInRound, eliminated);
+    }
+}
