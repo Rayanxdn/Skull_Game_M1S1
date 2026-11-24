@@ -43,7 +43,7 @@ Le projet contient **44 tests automatiques** : 22 pour le `player-service` (dont
 | Tableau de bord (front) | 4 |
 | Administration (front) | 3 |
 
-Les scénarios T01 à T35 portent sur l'API, les scénarios T36 à T51 sur le front-end. Chaque scénario précise l'action, le résultat attendu, le résultat obtenu et le nom de sa capture. Le détail est dans `docs/Plan_de_tests_Lot1_Complet.xlsx`.
+Les scénarios T01 à T35 portent sur l'API, les scénarios T36 à T51 sur le front-end. Chaque scénario précise l'action, le résultat attendu, le résultat obtenu et le nom de sa capture. Le détail est dans `docs/PlansDeTests/lot1/Plan_de_tests_Lot1_Complet.xlsx`.
 
 ## 4. Environnement de test
 

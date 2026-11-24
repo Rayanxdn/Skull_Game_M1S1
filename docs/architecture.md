@@ -104,7 +104,7 @@ Les endpoints de bannissement et d'administration du Membre 5 sont désormais in
 ## 9. Qualité et tests du Lot 1
 
 - **Qualification fonctionnelle** : comportement observé de l'extérieur, avec Postman pour l'API et le navigateur pour le front-end, sans lire le code.
-- **51 scénarios exécutés : 51 OK, 0 KO** (35 sur l'API, 16 sur le front-end). Détail et preuves : `docs/Plan_de_tests_Lot1_Complet.xlsx` et `docs/preuves/`.
+- **51 scénarios exécutés : 51 OK, 0 KO** (35 sur l'API, 16 sur le front-end). Détail et preuves : `docs/PlansDeTests/lot1/Plan_de_tests_Lot1_Complet.xlsx` et `docs/preuves/`.
 - **Qualification structurelle** : 44 tests automatiques (22 pour le `player-service`, 22 pour le front-end) exécutés le 29/10/2026 par Rania Zakraf, tous verts (captures `TA01` et `TA02` dans `docs/preuves/`).
 - **6 anomalies signalées, toutes corrigées** :
   - A01 à A04 (#14, #15, #16, #18) : corrigées le 28/10/2026 et retestées le 29/10/2026 (titre « Erreur de Validation », puis 403 à la place de 401 sur les routes réservées).
@@ -113,6 +113,6 @@ Les endpoints de bannissement et d'administration du Membre 5 sont désormais in
 
 ## 10. Points à confirmer
 
-- **Version de Spring Boot** : d'après un message du groupe (28/10), le `player-service` utilise la version 3.3.3 alors que les autres modules utilisent la 4.1.x ; à vérifier dans les `pom.xml` et à harmoniser si besoin.
+- **Version de Spring Boot** : vérifiée dans les `pom.xml` (20/11/2026) : `player-service` et `frontend` en 4.1.2 ; `game-service`, `ladder-service` et `market-service` en 4.1.1. Les versions restent à harmoniser (écart mineur).
 - **Adresse de l'interface Swagger** du `player-service`.
 - **Données simulées du tableau de bord** : à remplacer par les données du `ladder-service` lors du lot concerné.
