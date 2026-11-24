@@ -30,6 +30,7 @@ class JwtSecurityTest {
         return Jwts.builder()
                 .subject("alice@test.local")
                 .claim("id", 7)
+                .claim("pseudo", "Alice")
                 .claim("roles", List.of("USER"))
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + durationMs))
@@ -71,5 +72,12 @@ class JwtSecurityTest {
         mockMvc.perform(get("/api/v1/whoami").header("Authorization", "Bearer " + token(secret, 60_000)))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("alice@test.local")));
+    }
+
+    @Test
+    void protectedRoute_withValidToken_readsPseudoFromToken() throws Exception {
+        mockMvc.perform(get("/api/v1/whoami").header("Authorization", "Bearer " + token(secret, 60_000)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("pseudo=Alice")));
     }
 }
