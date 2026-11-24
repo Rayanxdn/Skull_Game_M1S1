@@ -5,6 +5,10 @@ import fr.miage.skull.game.entity.GameStatus;
 import java.time.Instant;
 import java.util.List;
 
+/**
+ * Vue d'une partie pour un joueur. currentTurnPlayerId, highestBidderId et winnerParticipantId
+ * sont des participantId (sièges) ; creatorId et winnerId sont des playerId (comptes).
+ */
 public record GameViewResponse(
         Long id,
         GameStatus status,
@@ -17,5 +21,10 @@ public record GameViewResponse(
         int currentBid,
         Long highestBidderId,
         Instant createdAt,
-        List<PlayerViewDto> players
+        List<PlayerViewDto> players,
+        int roundNumber,
+        int revealedFlowersCount,
+        int discsOnTable,
+        Long winnerParticipantId,
+        List<GameEventView> recentEvents
 ) {}

@@ -19,5 +19,8 @@ public record PlayerViewDto(
         int stackCount,
         // Renseigné uniquement pour le joueur connecté (null pour les adversaires)
         List<DiscType> myHand,
-        List<DiscType> myStack
+        List<DiscType> myStack,
+        // Public : disques de ce joueur déjà retournés pendant le défi en cours
+        List<DiscType> revealed,
+        int lostDiscsCount
 ) {}
