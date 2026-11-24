@@ -66,6 +66,17 @@ public class PlayerApiClient {
                 .body(LIST_TYPE));
     }
 
+
+    /** GET /api/v1/reports : liste des signalements, réservée à l'administrateur. */
+    public List<Map<String, Object>> listReports(String token) {
+        return call(() -> client.get()
+                .uri("/api/v1/reports")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .retrieve()
+                .body(LIST_TYPE));
+    }
+
+
     /** PUT /api/v1/players/{id}/ban?banned=true|false : bannir ou débannir, réservé à l'administrateur. */
     public Map<String, Object> setBanned(Long id, boolean banned, String token) {
         return call(() -> client.put()

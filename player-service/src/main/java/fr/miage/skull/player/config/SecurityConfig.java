@@ -42,6 +42,8 @@ public class SecurityConfig {
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers("/ping", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/players/register").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/players/*/report").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/reports").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/players/*/ban").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/players").hasRole("ADMIN")
                         // GET/PUT/DELETE /players/{id} : connecté ici, "admin ou propriétaire" dans le contrôleur

@@ -11,7 +11,9 @@ import fr.miage.skull.player.repository.PlayerRepository;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
+import org.springframework.transaction.annotation.Transactional;
+import fr.miage.skull.player.repository.ReportRepository;
+import fr.miage.skull.player.model.ReportStatus;
 
 import java.util.List;
 
@@ -21,11 +23,13 @@ public class PlayerService {
     private final PlayerRepository playerRepository;
     private final PasswordEncoder passwordEncoder;
     private final PlayerMapper playerMapper;
+    private final ReportRepository reportRepository;
 
-    public PlayerService(PlayerRepository playerRepository, PasswordEncoder passwordEncoder, PlayerMapper playerMapper) {
+    public PlayerService(PlayerRepository playerRepository, PasswordEncoder passwordEncoder, PlayerMapper playerMapper, ReportRepository reportRepository) {
         this.playerRepository = playerRepository;
         this.passwordEncoder = passwordEncoder;
         this.playerMapper = playerMapper;
+        this.reportRepository = reportRepository;
     }
 
     public PlayerResponseDto registerPlayer(PlayerRegistrationDTO dto) {
@@ -44,11 +48,17 @@ public class PlayerService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public PlayerResponseDto setBannedStatus(Long playerId, boolean banned) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new RessourceNotFoundException("Joueur non trouvé"));
         player.setBanned(banned);
         Player savedPlayer = playerRepository.save(player);
+        if (banned) {
+            reportRepository
+                    .findByReportedPlayer_IdAndStatus(playerId,ReportStatus.OPEN)
+                    .forEach(report -> {report.setStatus(ReportStatus.TREATED);});
+        }
         return playerMapper.toDto(savedPlayer);
     }
 

@@ -201,4 +201,152 @@ class SecurityIntegrationTest {
         mockMvc.perform(get("/api/v1/players/" + id).header("Authorization", bearer(oldToken)))
                 .andExpect(status().isForbidden());
     }
+
+
+    // ---------- signalements ----------
+
+    @Test
+    void report_withoutToken_returns401() throws Exception {
+        mockMvc.perform(post("/api/v1/players/1/report")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"reason\":\"Triche suspectée\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void user_cannotListReports_returns403() throws Exception {
+        String email = uniqueEmail();
+        register("Joueur", email);
+        String token = loginToken(email, PASSWORD);
+
+        mockMvc.perform(get("/api/v1/reports").header("Authorization", bearer(token)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void admin_canListReports_returns200() throws Exception {
+        String adminToken = loginToken("admin@test.local", "AdminTest123!");
+
+        mockMvc.perform(get("/api/v1/reports")
+                        .header("Authorization", bearer(adminToken)))
+                .andExpect(status().isOk());
+    }
+
+
+    @Test
+    void user_canReportAnotherPlayer_returns201() throws Exception {
+        // Créer le joueur qui sera signalé
+        long reportedPlayerId = register(
+                "JoueurSignale",
+                uniqueEmail()
+        );
+
+        // Créer le joueur qui effectue le signalement
+        String reporterEmail = uniqueEmail();
+        long reporterId = register("JoueurTemoin", reporterEmail);
+        String reporterToken = loginToken(reporterEmail, PASSWORD);
+
+        // Envois le signalement avec son JWT
+        mockMvc.perform(post("/api/v1/players/" + reportedPlayerId + "/report")
+                        .header("Authorization", bearer(reporterToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "reason": "Comportement suspect",
+                                  "gameId": 12345
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.reporterId").value(reporterId))
+                .andExpect(jsonPath("$.reportedPlayerId").value(reportedPlayerId))
+                .andExpect(jsonPath("$.reason").value("Comportement suspect"))
+                .andExpect(jsonPath("$.status").value("OPEN"));
+    }
+
+
+    @Test
+    void report_unknownPlayer_returns404() throws Exception {
+        String email = uniqueEmail();
+        register("Temoin", email);
+        String token = loginToken(email, PASSWORD);
+
+        mockMvc.perform(post("/api/v1/players/999999999/report")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"reason\":\"Triche suspectée\"}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void report_duplicate_returns409() throws Exception {
+        long reportedPlayerId = register(
+                "JoueurSignale",
+                uniqueEmail()
+        );
+
+        String reporterEmail = uniqueEmail();
+        register("Temoin", reporterEmail);
+        String token = loginToken(reporterEmail, PASSWORD);
+
+        String body = """
+                {
+                  "reason": "Comportement suspect",
+                  "gameId": 98765
+                }
+                """;
+
+        // Premier signalement : accepté
+        mockMvc.perform(post("/api/v1/players/" + reportedPlayerId + "/report")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isCreated());
+
+        // Deuxième signalement identique : refusé
+        mockMvc.perform(post("/api/v1/players/" + reportedPlayerId + "/report")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isConflict());
+    }
+
+
+    @Test
+    void banningPlayer_marksOpenReportsAsTreated() throws Exception {
+        // Créer le joueur qui sera signalé
+        long reportedPlayerId = register(
+                "JoueurSignale",
+                uniqueEmail()
+        );
+
+        // Créer le joueur qui effectue le signalement
+        String reporterEmail = uniqueEmail();
+        register("Temoin", reporterEmail);
+        String reporterToken = loginToken(reporterEmail, PASSWORD);
+
+        // Créer un signalement
+        String response = mockMvc.perform(
+                        post("/api/v1/players/" + reportedPlayerId + "/report")
+                                .header("Authorization", bearer(reporterToken))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"reason\":\"Triche suspectée\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("OPEN"))
+                .andReturn().getResponse().getContentAsString();
+
+        long reportId = objectMapper.readTree(response).get("id").asLong();
+
+        // Bannir le joueur avec un compte administrateur
+        String adminToken = loginToken("admin@test.local", "AdminTest123!");
+
+        mockMvc.perform(put("/api/v1/players/" + reportedPlayerId + "/ban")
+                        .param("banned", "true").header("Authorization", bearer(adminToken)))
+                .andExpect(status().isOk());
+
+        // Vérifier que le signalement est maintenant traité
+        mockMvc.perform(get("/api/v1/reports").header("Authorization", bearer(adminToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == " + reportId + ")].status").value("TREATED"));
+    }
+
 }
