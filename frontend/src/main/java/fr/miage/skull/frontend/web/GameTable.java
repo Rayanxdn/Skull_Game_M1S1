@@ -23,7 +23,7 @@ public final class GameTable {
             "CHALLENGE", "Défi",
             "FINISHED", "Partie terminée");
 
-    private static final int JOURNAL_SIZE = 12;
+    private static final int JOURNAL_SIZE = 30;
 
     private GameTable() {
     }
@@ -37,8 +37,12 @@ public final class GameTable {
         boolean myTurn = inProgress && mySeatId != null && mySeatId.equals(current);
         Long winnerSeat = asLong(game.get("winnerParticipantId"));
 
+        Map<String, Object> actions = myTurn ? actions(game, mySeat) : Map.of();
         Map<String, Object> t = new HashMap<>();
-        t.put("seats", seats(game, mySeatId, current, GameViews.tookPart(game, me) && !finished, me));
+        List<Map<String, Object>> seats = seats(game, mySeatId, current, GameViews.tookPart(game, me) && !finished, me,
+                revealIds(actions));
+        t.put("seats", seats);
+        t.put("reportable", seats.stream().filter(s -> Boolean.TRUE.equals(s.get("canReport"))).toList());
         t.put("phaseLabel", PHASES.getOrDefault(String.valueOf(game.get("phase")), ""));
         t.put("round", asInt(game.get("roundNumber")));
         t.put("bid", asInt(game.get("currentBid")));
@@ -54,15 +58,17 @@ public final class GameTable {
         t.put("currentName", nameOf(game, current));
         t.put("winnerName", nameOf(game, winnerSeat));
         t.put("iWon", finished && mySeatId != null && mySeatId.equals(winnerSeat));
+        t.put("winReason", finished ? winReason(game, winnerSeat) : "");
         t.put("hand", hand(mySeat));
-        t.put("actions", myTurn ? actions(game, mySeat) : Map.of());
+        t.put("actions", actions);
         t.put("journal", journal(game));
+        t.put("animEvents", animEvents(game));
         return t;
     }
 
     /** Sièges dans l'ordre du jeu, le joueur connecté en bas, puis dans le sens des aiguilles d'une montre. */
     static List<Map<String, Object>> seats(Map<String, Object> game, Long mySeatId, Long current,
-                                           boolean canReport, Long me) {
+                                           boolean canReport, Long me, List<Object> revealIds) {
         List<Map<String, Object>> players = new ArrayList<>(GameViews.players(game));
         players.sort((a, b) -> Integer.compare(asInt(a.get("seatOrder")), asInt(b.get("seatOrder"))));
         int start = 0;
@@ -85,6 +91,9 @@ public final class GameTable {
             Map<String, Object> s = new HashMap<>();
             s.put("id", id);
             s.put("name", String.valueOf(p.get("displayName")));
+            s.put("initial", initial(String.valueOf(p.get("displayName"))));
+            s.put("revealable", revealIds.contains(id));
+            s.put("peek", id != null && id.equals(mySeatId) ? peek(p.get("myStack")) : "");
             s.put("ai", ai);
             s.put("forfeited", Boolean.TRUE.equals(p.get("forfeited")));
             s.put("me", id != null && id.equals(mySeatId));
@@ -99,9 +108,74 @@ public final class GameTable {
             s.put("canReport", canReport && !ai && account != null && !account.equals(me));
             s.put("left", Math.round(50 + 38 * Math.cos(angle)));
             s.put("top", Math.round(50 + 38 * Math.sin(angle)));
+            s.put("pileLeft", Math.round(50 + 17 * Math.cos(angle)));
+            s.put("pileTop", Math.round(50 + 17 * Math.sin(angle)));
             seats.add(s);
         }
         return seats;
+    }
+
+    /** Sièges qu'on peut retourner maintenant (défi, à mon tour) : la pile devient cliquable. */
+    private static List<Object> revealIds(Map<String, Object> actions) {
+        List<Object> ids = new ArrayList<>();
+        if (actions.get("reveal") instanceof List<?> targets) {
+            for (Object target : targets) {
+                if (target instanceof Map<?, ?> m) {
+                    ids.add(m.get("id"));
+                }
+            }
+        }
+        return ids;
+    }
+
+    /** Ma propre pile, du bas vers le haut (F = fleur, C = crâne) : visible seulement par moi. */
+    private static String peek(Object myStack) {
+        List<String> letters = new ArrayList<>();
+        if (myStack instanceof List<?> discs) {
+            for (Object d : discs) {
+                letters.add("SKULL".equals(d) ? "C" : "F");
+            }
+        }
+        return String.join("·", letters);
+    }
+
+    private static final Map<String, String> ANIM_CODES = Map.of(
+            "DISC_PLACED", "P", "BID", "B", "PASS", "X", "FLOWER_REVEALED", "F", "SKULL_REVEALED", "S",
+            "CHALLENGE_WON", "W", "DISC_LOST", "L", "PLAYER_ELIMINATED", "E", "NEW_ROUND", "R", "GAME_WON", "G");
+
+    /**
+     * Les événements dans l'ordre, sous forme courte pour rejouer les coups à l'écran
+     * (code, siège qui agit, siège visé, valeur). Uniquement des informations publiques :
+     * un disque posé n'est jamais décrit, seul un disque retourné l'est.
+     */
+    static List<Map<String, Object>> animEvents(Map<String, Object> game) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        if (game.get("recentEvents") instanceof List<?> events) {
+            for (Object e : events) {
+                if (e instanceof Map<?, ?> event) {
+                    Map<String, Object> a = new HashMap<>();
+                    a.put("t", ANIM_CODES.getOrDefault(String.valueOf(event.get("type")), "O"));
+                    a.put("p", asLong(event.get("participantId")));
+                    a.put("q", asLong(event.get("targetParticipantId")));
+                    a.put("v", asInt(event.get("value")));
+                    list.add(a);
+                }
+            }
+        }
+        return list;
+    }
+
+    /** Comment la partie a été gagnée : 2 défis réussis, ou dernier joueur encore en jeu. */
+    private static String winReason(Map<String, Object> game, Long winnerSeat) {
+        return GameViews.players(game).stream()
+                .filter(p -> winnerSeat != null && winnerSeat.equals(asLong(p.get("participantId"))))
+                .findFirst()
+                .map(p -> asInt(p.get("points")) >= 2 ? "2 défis réussis" : "dernier joueur encore en jeu (les autres sont éliminés)")
+                .orElse("");
+    }
+
+    private static String initial(String name) {
+        return name.isEmpty() ? "?" : name.substring(0, 1).toUpperCase();
     }
 
     static Map<String, Integer> hand(Map<String, Object> mySeat) {

@@ -3,20 +3,33 @@
 <head th:fragment="head(title)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
     <title th:text="${title} + ' – Skull'">Skull</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <script>window.addEventListener('pageshow', function (e) { if (e.persisted) { window.location.reload(); } });</script>
 </head>
 <body>
 <nav th:fragment="navbar" class="navbar">
-    <a class="brand" th:href="@{/}">SKULL<span>.</span></a>
+    <a class="brand" th:href="@{/}">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <circle cx="16" cy="16" r="13"></circle>
+            <path d="M16 5v4M16 23v4M5 16h4M23 16h4"></path>
+            <circle cx="16" cy="14" r="4.5"></circle>
+            <path d="M13 19.5c.8 1.2 5.2 1.2 6 0"></path>
+        </svg>
+        <span>Skull</span>
+    </a>
     <div class="nav-links" th:if="${loggedIn}">
-        <a th:href="@{/dashboard}">Tableau de bord</a>
+        <a th:href="@{/dashboard}">Salon</a>
+        <a th:href="@{/games/new}">Créer une partie</a>
         <a th:if="${isAdmin}" th:href="@{/admin}">Administration</a>
     </div>
     <div class="nav-right">
         <th:block th:if="${loggedIn}">
-            <span th:text="${currentPseudo}">pseudo</span>
+            <span class="chip">
+                <span class="avatar" th:text="${#strings.isEmpty(currentPseudo)} ? '?' : ${#strings.toUpperCase(#strings.substring(currentPseudo, 0, 1))}">A</span>
+                <span th:text="${currentPseudo}">pseudo</span>
+            </span>
             <span class="badge badge-admin" th:if="${isAdmin}">ADMIN</span>
             <form th:action="@{/logout}" method="post">
                 <button class="btn btn-ghost btn-sm" type="submit">Se déconnecter</button>
