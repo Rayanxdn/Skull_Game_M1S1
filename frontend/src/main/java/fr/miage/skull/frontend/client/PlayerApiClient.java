@@ -1,5 +1,6 @@
 package fr.miage.skull.frontend.client;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -24,7 +25,7 @@ public class PlayerApiClient {
 
     private final RestClient client;
 
-    public PlayerApiClient(RestClient playerRestClient) {
+    public PlayerApiClient(@Qualifier("playerRestClient") RestClient playerRestClient) {
         this.client = playerRestClient;
     }
 
@@ -82,6 +83,20 @@ public class PlayerApiClient {
         return call(() -> client.put()
                 .uri("/api/v1/players/{id}/ban?banned={banned}", id, banned)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .retrieve()
+                .body(MAP_TYPE));
+    }
+
+    /** POST /api/v1/players/{id}/report : signale un joueur pour une partie (409 si déjà signalé). */
+    public Map<String, Object> reportPlayer(Long playerId, String reason, Long gameId, String token) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("reason", reason);
+        body.put("gameId", gameId);
+        return call(() -> client.post()
+                .uri("/api/v1/players/{id}/report", playerId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body)
                 .retrieve()
                 .body(MAP_TYPE));
     }

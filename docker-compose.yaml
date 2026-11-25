@@ -70,8 +70,10 @@ services:
     environment:
       SERVER_PORT: 8080
       PLAYER_API_URL: http://player-service:8080
+      GAME_API_URL: http://game-service:8080
     depends_on:
       - player-service
+      - game-service
 
 volumes:
   db_data:
