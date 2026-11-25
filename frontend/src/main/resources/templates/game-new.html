@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Créer une partie')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="auth-card">
+    <h1>Créer une partie</h1>
+    <p class="subtitle">Tu rejoins automatiquement la partie que tu crées. Il faut au moins 3 participants (joueurs et IA) pour la lancer.</p>
+    <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
+
+    <form th:action="@{/games}" th:object="${createGameForm}" method="post" novalidate>
+        <label for="maxPlayers">Nombre maximum de joueurs (3 à 6)</label>
+        <input id="maxPlayers" type="number" min="3" max="6" th:field="*{maxPlayers}">
+        <p class="field-error" th:if="${#fields.hasErrors('maxPlayers')}" th:errors="*{maxPlayers}"></p>
+
+        <label for="aiCount">Nombre d'IA autour de la table</label>
+        <input id="aiCount" type="number" min="0" max="5" th:field="*{aiCount}">
+        <p class="field-error" th:if="${#fields.hasErrors('aiCount')}" th:errors="*{aiCount}"></p>
+
+        <label for="flowerTheme">Motif de tes fleurs</label>
+        <select id="flowerTheme" th:field="*{flowerTheme}">
+            <option value="">Au hasard</option>
+            <option th:each="t : ${themes}" th:value="${t}" th:text="${themeLabels.get(t) ?: t}">Classique</option>
+        </select>
+        <p class="field-error" th:if="${#fields.hasErrors('flowerTheme')}" th:errors="*{flowerTheme}"></p>
+
+        <label for="skullTheme">Motif de ton crâne</label>
+        <select id="skullTheme" th:field="*{skullTheme}">
+            <option value="">Au hasard</option>
+            <option th:each="t : ${themes}" th:value="${t}" th:text="${themeLabels.get(t) ?: t}">Classique</option>
+        </select>
+        <p class="field-error" th:if="${#fields.hasErrors('skullTheme')}" th:errors="*{skullTheme}"></p>
+
+        <button class="btn" type="submit">Créer la partie</button>
+    </form>
+    <p class="subtitle" style="margin-top:1.2rem"><a th:href="@{/dashboard}">Retour au tableau de bord</a></p>
+</main>
+</body>
+</html>

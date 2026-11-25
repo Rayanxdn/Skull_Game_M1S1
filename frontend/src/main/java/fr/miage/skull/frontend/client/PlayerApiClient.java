@@ -1,5 +1,6 @@
 package fr.miage.skull.frontend.client;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -24,7 +25,7 @@ public class PlayerApiClient {
 
     private final RestClient client;
 
-    public PlayerApiClient(RestClient playerRestClient) {
+    public PlayerApiClient(@Qualifier("playerRestClient") RestClient playerRestClient) {
         this.client = playerRestClient;
     }
 

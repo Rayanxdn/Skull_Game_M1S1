@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Partie')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="container">
+    <h1>Partie <span th:text="'#' + ${game['id']}">#1</span>
+        <span class="badge" th:text="${game['status'] == 'FINISHED'} ? 'Terminée' : 'En cours'">En cours</span></h1>
+    <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
+    <p class="alert alert-info">L'écran de jeu arrive avec la branche suivante (table de jeu).</p>
+
+    <section class="panel">
+        <h2>Joueurs</h2>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Joueur</th><th>Défis réussis</th><th>Disques perdus</th></tr></thead>
+                <tbody>
+                <tr th:each="p : ${game['players']}">
+                    <td>
+                        <span th:text="${p['displayName']}">Alice</span>
+                        <span class="badge" th:if="${p['ai']}">IA</span>
+                        <span class="badge badge-danger" th:if="${p['eliminated']}">Éliminé</span>
+                    </td>
+                    <td th:text="${p['points']}">0</td>
+                    <td th:text="${p['lostDiscsCount']}">0</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <p><a th:href="@{/dashboard}">Retour au tableau de bord</a></p>
+</main>
+</body>
+</html>

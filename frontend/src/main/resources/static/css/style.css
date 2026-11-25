@@ -23,7 +23,7 @@ h1 { font-size: 1.7rem; margin: 0 0 .3rem; } h2 { font-size: 1.1rem; margin: 0 0
 .subtitle { color: var(--muted); margin: 0 0 1.2rem; }
 
 label { display: block; margin: 1rem 0 .3rem; font-weight: 600; font-size: .9rem; }
-input[type=text], input[type=email], input[type=password] { width: 100%; padding: .7rem .9rem;
+input[type=text], input[type=email], input[type=password], input[type=number], select { width: 100%; padding: .7rem .9rem;
   background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 10px; font-size: 1rem; }
 input:focus { outline: 2px solid var(--accent); border-color: transparent; }
 .field-error { color: var(--danger); font-size: .82rem; margin: .3rem 0 0; }
@@ -66,3 +66,9 @@ td form { margin: 0; }
 .progress { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; width: 90px; display: inline-block; vertical-align: middle; }
 .progress > i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
 @media (max-width: 600px) { .navbar { flex-wrap: wrap; } .nav-links { margin-left: 0; } }
+
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .8rem; }
+.panel-head h2 { margin: 0; }
+.row-actions { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; }
+.row-actions form { margin: 0; }
+.row-actions .subtitle { margin: 0; }

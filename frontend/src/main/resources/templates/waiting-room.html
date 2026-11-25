@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Salle d’attente')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="container">
+    <h1>Partie <span th:text="'#' + ${game['id']}">#1</span> <span class="badge">En attente</span></h1>
+    <p class="subtitle">
+        <span th:text="${#lists.size(game['players'])} + ' / ' + ${game['maxPlayers']}">1 / 4</span> participants.
+        <span th:if="${isParticipant}">La page se met à jour toute seule.</span>
+    </p>
+    <p th:if="${success}" class="alert alert-success" th:text="${success}"></p>
+    <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
+
+    <section class="panel">
+        <h2>Participants</h2>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Place</th><th>Joueur</th><th>Fleurs</th><th>Crâne</th></tr></thead>
+                <tbody>
+                <tr th:each="p : ${game['players']}">
+                    <td th:text="${p['seatOrder'] + 1}">1</td>
+                    <td>
+                        <span th:text="${p['displayName']}">Alice</span>
+                        <span class="badge" th:if="${p['ai']}">IA</span>
+                        <span class="badge badge-admin" th:if="${!p['ai'] and p['playerId'] == game['creatorId']}">Créateur</span>
+                        <span class="badge badge-ok" th:if="${mySeat != null and p['participantId'] == mySeat['participantId']}">Toi</span>
+                    </td>
+                    <td th:text="${themeLabels.get(p['flowerTheme']) ?: p['flowerTheme']}">Classique</td>
+                    <td th:text="${themeLabels.get(p['skullTheme']) ?: p['skullTheme']}">Classique</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="panel" th:if="${isParticipant}">
+        <div class="row-actions">
+            <form th:if="${isCreator}" th:action="@{/games/{id}/start(id=${game['id']})}" method="post">
+                <button class="btn btn-ok btn-sm" type="submit" th:disabled="${!canStart}">Lancer la partie</button>
+            </form>
+            <span class="subtitle" th:if="${isCreator and !canStart}">Il faut au moins 3 participants pour lancer.</span>
+            <span class="subtitle" th:unless="${isCreator}">En attente du lancement par le créateur…</span>
+            <form th:action="@{/games/{id}/leave(id=${game['id']})}" method="post">
+                <button class="btn btn-ghost btn-sm" type="submit">Quitter la partie</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="panel" th:unless="${isParticipant}">
+        <h2>Rejoindre cette partie</h2>
+        <p class="subtitle" th:if="${isFull}">La partie est complète.</p>
+        <form th:unless="${isFull}" th:action="@{/games/{id}/join(id=${game['id']})}" method="post">
+            <label for="flowerTheme">Motif de tes fleurs</label>
+            <select id="flowerTheme" name="flowerTheme">
+                <option value="">Au hasard</option>
+                <option th:each="t : ${themes}" th:value="${t}" th:text="${themeLabels.get(t) ?: t}">Classique</option>
+            </select>
+            <label for="skullTheme">Motif de ton crâne</label>
+            <select id="skullTheme" name="skullTheme">
+                <option value="">Au hasard</option>
+                <option th:each="t : ${themes}" th:value="${t}" th:text="${themeLabels.get(t) ?: t}">Classique</option>
+            </select>
+            <button class="btn" type="submit">Rejoindre</button>
+        </form>
+    </section>
+
+    <p><a th:href="@{/dashboard}">Retour au tableau de bord</a></p>
+</main>
+<script th:if="${isParticipant}">setTimeout(function () { window.location.reload(); }, 4000);</script>
+</body>
+</html>

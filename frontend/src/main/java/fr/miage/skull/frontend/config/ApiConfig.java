@@ -12,4 +12,9 @@ public class ApiConfig {
     public RestClient playerRestClient(@Value("${api.player-url}") String baseUrl) {
         return RestClient.builder().baseUrl(baseUrl).build();
     }
+
+    @Bean
+    public RestClient gameRestClient(@Value("${api.game-url}") String baseUrl) {
+        return RestClient.builder().baseUrl(baseUrl).build();
+    }
 }
