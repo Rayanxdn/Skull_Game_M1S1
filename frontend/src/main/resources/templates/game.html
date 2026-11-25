@@ -3,33 +3,147 @@
 <head th:replace="~{fragments/layout :: head('Partie')}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
-<main class="container">
+<main class="container" style="max-width:1180px">
     <h1>Partie <span th:text="'#' + ${game['id']}">#1</span>
-        <span class="badge" th:text="${game['status'] == 'FINISHED'} ? 'Terminée' : 'En cours'">En cours</span></h1>
+        <span class="badge" th:text="${finished} ? 'Terminée' : 'En cours'">En cours</span></h1>
+    <p th:if="${success}" class="alert alert-success" th:text="${success}"></p>
     <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
-    <p class="alert alert-info">L'écran de jeu arrive avec la branche suivante (table de jeu).</p>
 
-    <section class="panel">
-        <h2>Joueurs</h2>
-        <div class="table-wrap">
-            <table>
-                <thead><tr><th>Joueur</th><th>Défis réussis</th><th>Disques perdus</th></tr></thead>
-                <tbody>
-                <tr th:each="p : ${game['players']}">
-                    <td>
-                        <span th:text="${p['displayName']}">Alice</span>
-                        <span class="badge" th:if="${p['ai']}">IA</span>
-                        <span class="badge badge-danger" th:if="${p['eliminated']}">Éliminé</span>
-                    </td>
-                    <td th:text="${p['points']}">0</td>
-                    <td th:text="${p['lostDiscsCount']}">0</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
+    <section class="panel end-banner" th:if="${finished}">
+        <p class="subtitle">Fin de la partie</p>
+        <p class="result" th:classappend="${iWon} ? 'win' : ''"
+           th:text="${iWon} ? 'Tu as gagné !' : (${winnerName} + ' remporte la partie')">Alice remporte la partie</p>
+        <a class="btn btn-sm" th:href="@{/dashboard}">Retour au tableau de bord</a>
     </section>
+
+    <div class="table-top" th:if="${inProgress}">
+        <span class="info">Manche <b th:text="${round}">1</b></span>
+        <span class="info">Phase : <b th:text="${phaseLabel}">Enchères</b></span>
+        <span class="info">Disques sur la table : <b th:text="${onTable}">0</b></span>
+        <span class="info" th:if="${myTurn}"><b class="win">À toi de jouer</b></span>
+        <span class="info" th:unless="${myTurn}">Au tour de <b th:text="${currentName}">Bob</b></span>
+    </div>
+    <p class="alert alert-info" th:if="${leftGame}">Tu as quitté cette partie : une IA joue à ta place.</p>
+
+    <div class="game-layout">
+        <div>
+            <div class="arena">
+                <div class="felt">
+                    <th:block th:if="${bid > 0}">
+                        <span class="muted">Enchère</span>
+                        <span class="bid" th:text="${bid}">3</span>
+                        <span class="muted" th:if="${challenge}" th:text="${flowersFound} + ' / ' + ${bid} + ' fleurs trouvées'">0 / 3</span>
+                    </th:block>
+                    <span class="muted" th:unless="${bid > 0}" th:text="${phaseLabel}">Pose des disques</span>
+                </div>
+
+                <div class="seat" th:each="s : ${seats}"
+                     th:classappend="(${s['current']} ? ' current' : '') + (${s['me']} ? ' me' : '') + (${s['eliminated'] or s['forfeited']} ? ' out' : '')"
+                     th:style="'left:' + ${s['left']} + '%;top:' + ${s['top']} + '%'">
+                    <div class="name">
+                        <span th:text="${s['name']}">Bob</span>
+                        <span class="badge" th:if="${s['ai']}">IA</span>
+                        <span class="badge badge-ok" th:if="${s['me']}">Toi</span>
+                    </div>
+                    <div class="line">
+                        <span th:text="${s['points']} + ' défi(s) réussi(s)'">0 défi réussi</span>
+                    </div>
+                    <div class="line">
+                        Pile : <span th:text="${s['stackCount']}">0</span>
+                        <span class="discs" th:if="${s['stackCount'] > 0}"><i class="disc" th:each="n : ${#numbers.sequence(1, s['stackCount'])}"></i></span>
+                    </div>
+                    <div class="line" th:unless="${#lists.isEmpty(s['revealed'])}">
+                        Retournés :
+                        <span class="discs"><i class="disc" th:each="d : ${s['revealed']}"
+                                               th:classappend="${d == 'FLOWER'} ? 'flower' : 'skull'"
+                                               th:title="${d == 'FLOWER'} ? 'Fleur' : 'Crâne'"></i></span>
+                    </div>
+                    <div class="line">
+                        <span th:text="'Main : ' + ${s['handCount']} + ' · perdus : ' + ${s['lost']}">Main : 3 · perdus : 0</span>
+                    </div>
+                    <div class="line">
+                        <span class="badge badge-danger" th:if="${s['eliminated']}">Éliminé</span>
+                        <span class="badge" th:if="${s['forfeited']}">A quitté</span>
+                        <span class="badge" th:if="${s['passed']}">Retiré</span>
+                    </div>
+                    <details th:if="${s['canReport']}">
+                        <summary>Signaler</summary>
+                        <form th:action="@{/games/{id}/report(id=${game['id']})}" method="post">
+                            <input type="hidden" name="participantId" th:value="${s['id']}">
+                            <textarea name="reason" rows="2" maxlength="300" required placeholder="Motif du signalement"></textarea>
+                            <button class="btn btn-danger btn-sm" type="submit">Envoyer</button>
+                        </form>
+                    </details>
+                </div>
+            </div>
+
+            <section class="panel dock" th:if="${isPlayer and inProgress}">
+                <h2>Ma main</h2>
+                <p class="subtitle">
+                    Fleurs : <b th:text="${hand['flowers']}">3</b> · Crâne : <b th:text="${hand['skulls']}">1</b>
+                </p>
+                <p class="subtitle" th:if="${meOut}">Tu es éliminé : tu peux suivre la fin de la partie.</p>
+                <p class="subtitle" th:unless="${myTurn or meOut}">Attends ton tour, la page se met à jour toute seule.</p>
+                <p class="subtitle" th:if="${myTurn and challenge}">Défi : retourne d'abord toute ta pile, puis celles des autres.</p>
+                <div class="row-actions" th:if="${myTurn}">
+                    <form th:if="${actions['placeFlower']}" th:action="@{/games/{id}/move(id=${game['id']})}" method="post">
+                        <input type="hidden" name="type" value="PLACE_DISC">
+                        <input type="hidden" name="discType" value="FLOWER">
+                        <button class="btn btn-sm" type="submit">Poser une fleur</button>
+                    </form>
+                    <form th:if="${actions['placeSkull']}" th:action="@{/games/{id}/move(id=${game['id']})}" method="post">
+                        <input type="hidden" name="type" value="PLACE_DISC">
+                        <input type="hidden" name="discType" value="SKULL">
+                        <button class="btn btn-sm" type="submit">Poser le crâne</button>
+                    </form>
+                    <form th:if="${actions['bid']}" th:action="@{/games/{id}/move(id=${game['id']})}" method="post">
+                        <input type="hidden" name="type" value="BID">
+                        <input type="number" name="bidAmount" aria-label="Nombre de fleurs annoncé"
+                               th:min="${actions['bidMin']}" th:max="${actions['bidMax']}" th:value="${actions['bidMin']}">
+                        <button class="btn btn-sm" type="submit">Annoncer</button>
+                    </form>
+                    <form th:if="${actions['pass']}" th:action="@{/games/{id}/move(id=${game['id']})}" method="post">
+                        <input type="hidden" name="type" value="PASS">
+                        <button class="btn btn-ghost btn-sm" type="submit">Me retirer</button>
+                    </form>
+                    <form th:each="r : ${actions['reveal']}" th:action="@{/games/{id}/move(id=${game['id']})}" method="post">
+                        <input type="hidden" name="type" value="REVEAL">
+                        <input type="hidden" name="targetPlayerId" th:value="${r['id']}">
+                        <button class="btn btn-sm" type="submit"
+                                th:text="'Retourner : ' + ${r['name']} + ' (' + ${r['count']} + ')'">Retourner</button>
+                    </form>
+                </div>
+                <details style="margin-top:1rem">
+                    <summary class="subtitle">Quitter la partie</summary>
+                    <p class="subtitle">Une IA prendra ta place et la partie sera comptée comme perdue.</p>
+                    <form th:action="@{/games/{id}/leave(id=${game['id']})}" method="post">
+                        <button class="btn btn-danger btn-sm" type="submit">Quitter définitivement</button>
+                    </form>
+                </details>
+            </section>
+        </div>
+
+        <aside class="panel">
+            <h2>Journal</h2>
+            <p class="subtitle" th:if="${#lists.isEmpty(journal)}">Rien pour l'instant.</p>
+            <ul class="journal">
+                <li th:each="line : ${journal}" th:text="${line}">Alice pose un disque.</li>
+            </ul>
+            <p class="subtitle" style="margin-top:.8rem">
+                <i class="disc flower"></i> fleur retournée · <i class="disc skull"></i> crâne retourné
+            </p>
+        </aside>
+    </div>
 
     <p><a th:href="@{/dashboard}">Retour au tableau de bord</a></p>
 </main>
+<script th:if="${inProgress and !myTurn}">
+    setInterval(function () {
+        var tag = document.activeElement ? document.activeElement.tagName : '';
+        if (!document.querySelector('details[open]') && tag !== 'INPUT' && tag !== 'TEXTAREA') {
+            window.location.reload();
+        }
+    }, 3000);
+</script>
 </body>
 </html>

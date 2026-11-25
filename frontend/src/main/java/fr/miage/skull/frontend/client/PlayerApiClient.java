@@ -87,6 +87,20 @@ public class PlayerApiClient {
                 .body(MAP_TYPE));
     }
 
+    /** POST /api/v1/players/{id}/report : signale un joueur pour une partie (409 si déjà signalé). */
+    public Map<String, Object> reportPlayer(Long playerId, String reason, Long gameId, String token) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("reason", reason);
+        body.put("gameId", gameId);
+        return call(() -> client.post()
+                .uri("/api/v1/players/{id}/report", playerId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body)
+                .retrieve()
+                .body(MAP_TYPE));
+    }
+
     private <T> T call(Supplier<T> request) {
         try {
             return request.get();

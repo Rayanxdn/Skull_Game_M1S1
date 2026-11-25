@@ -4,6 +4,7 @@ import fr.miage.skull.frontend.client.ApiException;
 import fr.miage.skull.frontend.client.GameApiClient;
 import fr.miage.skull.frontend.form.CreateGameForm;
 import fr.miage.skull.frontend.web.GameErrors;
+import fr.miage.skull.frontend.web.GameTable;
 import fr.miage.skull.frontend.web.GameViews;
 import fr.miage.skull.frontend.web.SessionKeys;
 import jakarta.servlet.http.HttpSession;
@@ -112,6 +113,7 @@ public class LobbyController {
             model.addAttribute("themes", themes(session));
             return "waiting-room";
         }
+        model.addAllAttributes(GameTable.build(game, me));
         return "game";
     }
 
