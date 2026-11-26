@@ -3,144 +3,427 @@
 <head th:replace="~{fragments/layout :: head('Partie')}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
-<main class="container" style="max-width:1180px">
-    <h1>Partie <span th:text="'#' + ${game['id']}">#1</span>
-        <span class="badge" th:text="${finished} ? 'Terminée' : 'En cours'">En cours</span></h1>
-    <p th:if="${success}" class="alert alert-success" th:text="${success}"></p>
-    <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-flower" viewBox="0 0 36 36">
+        <g fill="#d9a54f"><ellipse cx="18" cy="9" rx="3.4" ry="6"></ellipse><ellipse cx="18" cy="9" rx="3.4" ry="6" transform="rotate(45 18 18)"></ellipse>
+            <ellipse cx="18" cy="9" rx="3.4" ry="6" transform="rotate(90 18 18)"></ellipse><ellipse cx="18" cy="9" rx="3.4" ry="6" transform="rotate(135 18 18)"></ellipse>
+            <ellipse cx="18" cy="9" rx="3.4" ry="6" transform="rotate(180 18 18)"></ellipse><ellipse cx="18" cy="9" rx="3.4" ry="6" transform="rotate(225 18 18)"></ellipse>
+            <ellipse cx="18" cy="9" rx="3.4" ry="6" transform="rotate(270 18 18)"></ellipse><ellipse cx="18" cy="9" rx="3.4" ry="6" transform="rotate(315 18 18)"></ellipse></g>
+        <circle cx="18" cy="18" r="4.6" fill="#3fbf8f" stroke="#d9a54f" stroke-width="1"></circle></symbol>
+    <symbol id="i-skull" viewBox="0 0 36 36">
+        <path d="M18 6c-6 0-10.5 4.4-10.5 10.3 0 3.7 1.8 6.5 4.2 8.2V29h12.6v-4.5c2.4-1.7 4.2-4.5 4.2-8.2C28.5 10.4 24 6 18 6Z" fill="#f2ece1"></path>
+        <circle cx="14" cy="16.5" r="2.6" fill="#2a0f12"></circle><circle cx="22" cy="16.5" r="2.6" fill="#2a0f12"></circle>
+        <path d="M18 19.6l-1.4 2.4h2.8Z" fill="#2a0f12"></path>
+        <path d="M15.2 25.5v3.5M18 25.5v3.5M20.8 25.5v3.5" stroke="#2a0f12" stroke-width="1.1"></path></symbol>
+    <symbol id="i-back" viewBox="0 0 32 32">
+        <circle cx="16" cy="16" r="14.5" fill="#0f1a30" stroke="#c9a15a" stroke-width="1.6"></circle>
+        <circle cx="16" cy="16" r="10.5" fill="none" stroke="#c9a15a" stroke-width=".7" opacity=".6"></circle>
+        <polygon points="16,4.5 18.2,13.8 27.5,16 18.2,18.2 16,27.5 13.8,18.2 4.5,16 13.8,13.8" fill="#d9b36a"></polygon>
+        <polygon points="16,9 17,15 23,16 17,17 16,23 15,17 9,16 15,15" fill="#7cc4e8" opacity=".55"></polygon>
+        <circle cx="16" cy="16" r="1.6" fill="#0f1a30"></circle></symbol>
+    <symbol id="i-bot" viewBox="0 0 28 28"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+        <rect x="7" y="9" width="14" height="12" rx="3"></rect><path d="M14 5v4M10.5 14h.01M17.5 14h.01M10 18h8"></path>
+        <circle cx="14" cy="4" r="1.2" fill="currentColor"></circle></g></symbol>
+</svg>
+<p th:if="${success}" class="alert alert-success toast" th:text="${success}"></p>
+<p th:if="${error}" class="alert alert-error toast" th:text="${error}"></p>
 
-    <section class="panel end-banner" th:if="${finished}">
-        <p class="subtitle">Fin de la partie</p>
-        <p class="result" th:classappend="${iWon} ? 'win' : ''"
-           th:text="${iWon} ? 'Tu as gagné !' : (${winnerName} + ' remporte la partie')">Alice remporte la partie</p>
-        <a class="btn btn-sm" th:href="@{/dashboard}">Retour au tableau de bord</a>
-    </section>
-
-    <div class="table-top" th:if="${inProgress}">
-        <span class="info">Manche <b th:text="${round}">1</b></span>
-        <span class="info">Phase : <b th:text="${phaseLabel}">Enchères</b></span>
-        <span class="info">Disques sur la table : <b th:text="${onTable}">0</b></span>
-        <span class="info" th:if="${myTurn}"><b class="win">À toi de jouer</b></span>
-        <span class="info" th:unless="${myTurn}">Au tour de <b th:text="${currentName}">Bob</b></span>
-    </div>
-    <p class="alert alert-info" th:if="${leftGame}">Tu as quitté cette partie : une IA joue à ta place.</p>
-
-    <div class="game-layout">
-        <div>
-            <div class="arena">
-                <div class="felt">
-                    <th:block th:if="${bid > 0}">
-                        <span class="muted">Enchère</span>
-                        <span class="bid" th:text="${bid}">3</span>
-                        <span class="muted" th:if="${challenge}" th:text="${flowersFound} + ' / ' + ${bid} + ' fleurs trouvées'">0 / 3</span>
-                    </th:block>
-                    <span class="muted" th:unless="${bid > 0}" th:text="${phaseLabel}">Pose des disques</span>
-                </div>
-
-                <div class="seat" th:each="s : ${seats}"
-                     th:classappend="(${s['current']} ? ' current' : '') + (${s['me']} ? ' me' : '') + (${s['eliminated'] or s['forfeited']} ? ' out' : '')"
-                     th:style="'left:' + ${s['left']} + '%;top:' + ${s['top']} + '%'">
-                    <div class="name">
-                        <span th:text="${s['name']}">Bob</span>
-                        <span class="badge" th:if="${s['ai']}">IA</span>
-                        <span class="badge badge-ok" th:if="${s['me']}">Toi</span>
-                    </div>
-                    <div class="line">
-                        <span th:text="${s['points']} + ' défi(s) réussi(s)'">0 défi réussi</span>
-                    </div>
-                    <div class="line">
-                        Pile : <span th:text="${s['stackCount']}">0</span>
-                        <span class="discs" th:if="${s['stackCount'] > 0}"><i class="disc" th:each="n : ${#numbers.sequence(1, s['stackCount'])}"></i></span>
-                    </div>
-                    <div class="line" th:unless="${#lists.isEmpty(s['revealed'])}">
-                        Retournés :
-                        <span class="discs"><i class="disc" th:each="d : ${s['revealed']}"
-                                               th:classappend="${d == 'FLOWER'} ? 'flower' : 'skull'"
-                                               th:title="${d == 'FLOWER'} ? 'Fleur' : 'Crâne'"></i></span>
-                    </div>
-                    <div class="line">
-                        <span th:text="'Main : ' + ${s['handCount']} + ' · perdus : ' + ${s['lost']}">Main : 3 · perdus : 0</span>
-                    </div>
-                    <div class="line">
-                        <span class="badge badge-danger" th:if="${s['eliminated']}">Éliminé</span>
-                        <span class="badge" th:if="${s['forfeited']}">A quitté</span>
-                        <span class="badge" th:if="${s['passed']}">Retiré</span>
-                    </div>
-                    <details th:if="${s['canReport']}">
-                        <summary>Signaler</summary>
-                        <form th:action="@{/games/{id}/report(id=${game['id']})}" method="post">
-                            <input type="hidden" name="participantId" th:value="${s['id']}">
-                            <textarea name="reason" rows="2" maxlength="300" required placeholder="Motif du signalement"></textarea>
-                            <button class="btn btn-danger btn-sm" type="submit">Envoyer</button>
-                        </form>
-                    </details>
-                </div>
-            </div>
-
-            <section class="panel dock" th:if="${isPlayer and inProgress}">
-                <h2>Ma main</h2>
-                <p class="subtitle">
-                    Fleurs : <b th:text="${hand['flowers']}">3</b> · Crâne : <b th:text="${hand['skulls']}">1</b>
-                </p>
-                <p class="subtitle" th:if="${meOut}">Tu es éliminé : tu peux suivre la fin de la partie.</p>
-                <p class="subtitle" th:unless="${myTurn or meOut}">Attends ton tour, la page se met à jour toute seule.</p>
-                <p class="subtitle" th:if="${myTurn and challenge}">Défi : retourne d'abord toute ta pile, puis celles des autres.</p>
-                <div class="row-actions" th:if="${myTurn}">
-                    <form th:if="${actions['placeFlower']}" th:action="@{/games/{id}/move(id=${game['id']})}" method="post">
-                        <input type="hidden" name="type" value="PLACE_DISC">
-                        <input type="hidden" name="discType" value="FLOWER">
-                        <button class="btn btn-sm" type="submit">Poser une fleur</button>
-                    </form>
-                    <form th:if="${actions['placeSkull']}" th:action="@{/games/{id}/move(id=${game['id']})}" method="post">
-                        <input type="hidden" name="type" value="PLACE_DISC">
-                        <input type="hidden" name="discType" value="SKULL">
-                        <button class="btn btn-sm" type="submit">Poser le crâne</button>
-                    </form>
-                    <form th:if="${actions['bid']}" th:action="@{/games/{id}/move(id=${game['id']})}" method="post">
-                        <input type="hidden" name="type" value="BID">
-                        <input type="number" name="bidAmount" aria-label="Nombre de fleurs annoncé"
-                               th:min="${actions['bidMin']}" th:max="${actions['bidMax']}" th:value="${actions['bidMin']}">
-                        <button class="btn btn-sm" type="submit">Annoncer</button>
-                    </form>
-                    <form th:if="${actions['pass']}" th:action="@{/games/{id}/move(id=${game['id']})}" method="post">
-                        <input type="hidden" name="type" value="PASS">
-                        <button class="btn btn-ghost btn-sm" type="submit">Me retirer</button>
-                    </form>
-                    <form th:each="r : ${actions['reveal']}" th:action="@{/games/{id}/move(id=${game['id']})}" method="post">
-                        <input type="hidden" name="type" value="REVEAL">
-                        <input type="hidden" name="targetPlayerId" th:value="${r['id']}">
-                        <button class="btn btn-sm" type="submit"
-                                th:text="'Retourner : ' + ${r['name']} + ' (' + ${r['count']} + ')'">Retourner</button>
-                    </form>
-                </div>
-                <details style="margin-top:1rem">
-                    <summary class="subtitle">Quitter la partie</summary>
+<main class="game-screen">
+    <div class="topbar">
+        <div class="group">
+            <h1>Partie <span th:text="'#' + ${game['id']}">#1</span></h1>
+            <span class="badge badge-brass" th:if="${inProgress}" th:text="'Manche ' + ${round}">Manche 1</span>
+            <span class="badge" th:if="${inProgress}" th:text="${phaseLabel}">Enchères</span>
+            <span class="badge badge-ok" th:if="${finished}">Terminée</span>
+        </div>
+        <div class="group">
+            <b class="win" th:if="${inProgress and myTurn}">À toi de jouer</b>
+            <span th:if="${inProgress and !myTurn}">Au tour de <b th:text="${currentName}">Bob</b></span>
+            <details th:if="${isPlayer and inProgress}">
+                <summary class="btn btn-danger btn-sm">Quitter la partie</summary>
+                <div>
                     <p class="subtitle">Une IA prendra ta place et la partie sera comptée comme perdue.</p>
                     <form th:action="@{/games/{id}/leave(id=${game['id']})}" method="post">
                         <button class="btn btn-danger btn-sm" type="submit">Quitter définitivement</button>
                     </form>
-                </details>
-            </section>
+                </div>
+            </details>
+            <a class="btn btn-ghost btn-sm" th:href="@{/dashboard}">Salon</a>
         </div>
+    </div>
 
-        <aside class="panel">
+    <div class="game-main">
+        <section class="stage">
+            <div class="arena" th:attr="data-game=${game['id']}">
+                <div class="felt">
+                    <th:block th:if="${bid > 0}">
+                        <span class="hub-label">Enchère</span>
+                        <span class="bid" th:text="${bid}">3</span>
+                        <span class="mono" th:if="${challenge}" th:text="${flowersFound} + ' / ' + ${bid} + ' fleurs trouvées'">0 / 3</span>
+                    </th:block>
+                    <th:block th:unless="${bid > 0}">
+                        <span class="hub-label" th:text="'Total disques : ' + ${onTable}">Total disques : 0</span>
+                        <span class="hub-turn" th:if="${inProgress and myTurn}">À toi de jouer</span>
+                        <span class="hub-turn" th:if="${inProgress and !myTurn}">Tour de <b th:text="${currentName}">Camille</b></span>
+                    </th:block>
+                </div>
+
+                <th:block th:each="s : ${seats}">
+                    <div class="seat" th:attr="data-seat=${s['id']}"
+                         th:classappend="(${s['current']} ? ' current' : '') + (${s['me']} ? ' me' : '') + (${s['eliminated'] or s['forfeited']} ? ' out' : '')"
+                         th:style="'left:' + ${s['left']} + '%;top:' + ${s['top']} + '%'">
+                        <div class="seat-head">
+                            <span class="avatar ai" th:if="${s['ai']}"><svg><use href="#i-bot"></use></svg></span>
+                            <span class="avatar" th:unless="${s['ai']}" th:text="${s['initial']}">B</span>
+                            <span class="seat-name" th:text="${s['name']}">Bob</span>
+                            <span class="badge" th:if="${s['ai']}">IA</span>
+                            <span class="badge badge-ok" th:if="${s['me']}">Toi</span>
+                        </div>
+                        <div class="seat-meta">
+                            <span class="pips" th:title="${s['points']} + ' défi(s) réussi(s) sur 2'">
+                                <i class="pip" th:classappend="${s['points'] >= 1} ? 'on' : ''"></i>
+                                <i class="pip" th:classappend="${s['points'] >= 2} ? 'on' : ''"></i>
+                            </span>
+                            <span th:text="${s['handCount']} + ' en main'">4 en main</span>
+                        </div>
+                        <div class="seat-tags" th:if="${s['eliminated'] or s['forfeited'] or s['passed'] or s['lost'] > 0}">
+                            <span class="badge badge-danger" th:if="${s['eliminated']}">Éliminé</span>
+                            <span class="badge" th:if="${s['forfeited']}">A quitté</span>
+                            <span class="badge" th:if="${s['passed']}">Retiré</span>
+                            <span class="badge badge-danger" th:if="${s['lost'] > 0}" th:text="${s['lost']} + ' perdu(s)'">1 perdu</span>
+                        </div>
+                    </div>
+
+                    <form th:if="${s['revealable']}" th:action="@{/games/{id}/move(id=${game['id']})}" method="post">
+                        <input type="hidden" name="type" value="REVEAL">
+                        <input type="hidden" name="targetPlayerId" th:value="${s['id']}">
+                        <button class="pile" type="submit" th:attr="data-pile=${s['id']}" th:title="'Retourner un disque de la pile de ' + ${s['name']}"
+                                th:style="'left:' + ${s['pileLeft']} + '%;top:' + ${s['pileTop']} + '%'">
+                            <span class="stack"><i class="disc" th:each="n : ${#numbers.sequence(1, s['stackCount'])}"
+                                                   th:style="'top:' + ${(1 - n) * 4} + 'px'"><svg><use href="#i-back"></use></svg></i></span>
+                            <span class="revealed" th:unless="${#lists.isEmpty(s['revealed'])}">
+                                <span class="mini" th:each="d : ${s['revealed']}" th:classappend="${d == 'FLOWER'} ? 'flower' : 'skull'">
+                                    <svg th:if="${d == 'FLOWER'}"><use href="#i-flower"></use></svg>
+                                    <svg th:unless="${d == 'FLOWER'}"><use href="#i-skull"></use></svg>
+                                </span>
+                            </span>
+                            <span class="count" th:text="${s['stackCount']} + ' à retourner'">2</span>
+                        </button>
+                    </form>
+                    <div class="pile" th:attr="data-pile=${s['id']}" th:if="${!s['revealable'] and (s['stackCount'] > 0 or !#lists.isEmpty(s['revealed']))}"
+                         th:style="'left:' + ${s['pileLeft']} + '%;top:' + ${s['pileTop']} + '%'">
+                        <span class="stack" th:if="${s['stackCount'] > 0}"><i class="disc" th:each="n : ${#numbers.sequence(1, s['stackCount'])}"
+                                                   th:style="'top:' + ${(1 - n) * 4} + 'px'"><svg><use href="#i-back"></use></svg></i></span>
+                        <span class="revealed" th:unless="${#lists.isEmpty(s['revealed'])}">
+                            <span class="mini" th:each="d : ${s['revealed']}" th:classappend="${d == 'FLOWER'} ? 'flower' : 'skull'"
+                                  th:title="${d == 'FLOWER'} ? 'Fleur' : 'Crâne'">
+                                <svg th:if="${d == 'FLOWER'}"><use href="#i-flower"></use></svg>
+                                <svg th:unless="${d == 'FLOWER'}"><use href="#i-skull"></use></svg>
+                            </span>
+                        </span>
+                        <span class="count" th:if="${s['stackCount'] > 0 and #strings.isEmpty(s['peek'])}" th:text="${s['stackCount']} + ' disque(s)'">1</span>
+                        <span class="count peek" th:unless="${#strings.isEmpty(s['peek'])}" th:text="${s['peek']}" title="Ta pile, du bas vers le haut (F = fleur, C = crâne)">F·C</span>
+                    </div>
+                </th:block>
+                <div id="anim-hand" class="anim-hand" aria-hidden="true">
+                    <svg viewBox="0 0 64 64" fill="none" stroke-width="1.8">
+                        <circle cx="32" cy="36" r="17" fill="#17243c" stroke="#dfaa5b"></circle>
+                        <path d="M22 25c0-6 2-11 4-11s3 4 3 10M29 22c0-7 2-13 4-13s3 5 3 12M36 24c0-6 2-10 4-10s3 4 3 10M43 29c1-4 3-7 5-6s1 6-1 11c-2 6-5 11-11 12h-8c-5 0-9-4-9-9v-7c0-3 2-5 4-4" stroke="#f2ece1" fill="#111b2e"></path>
+                    </svg>
+                </div>
+                <div id="ghosts"></div>
+                <div id="replay-note" class="replay-note" hidden></div>
+                <button id="replay-skip" class="btn btn-ghost btn-sm replay-skip" type="button" hidden>Passer l'animation</button>
+                <ol id="events" hidden>
+                    <li th:each="e : ${animEvents}" th:attr="data-t=${e['t']},data-p=${e['p']},data-q=${e['q']},data-v=${e['v']}"></li>
+                </ol>
+            </div>
+
+            <div class="banner" th:if="${finished}">
+                <span class="mono">Fin de la partie</span>
+                <p class="result" th:classappend="${iWon} ? 'win' : ''"
+                   th:text="${iWon} ? 'Tu as gagné !' : (${winnerName} + ' remporte la partie')">Alice remporte la partie</p>
+                <p class="subtitle" th:unless="${#strings.isEmpty(winReason)}" th:text="'Victoire par ' + ${winReason}">Victoire par 2 défis réussis</p>
+                <ul class="final-scores">
+                    <li th:each="s : ${seats}">
+                        <span th:text="${s['name']}">Bob</span>
+                        <span th:text="${s['points']} + ' défi(s) réussi(s)' + (${s['eliminated']} ? ' · éliminé' : '')">1 défi réussi</span>
+                    </li>
+                </ul>
+                <a class="btn" th:href="@{/dashboard}">Retour au salon</a>
+            </div>
+        </section>
+
+        <aside class="drawer">
             <h2>Journal</h2>
-            <p class="subtitle" th:if="${#lists.isEmpty(journal)}">Rien pour l'instant.</p>
-            <ul class="journal">
-                <li th:each="line : ${journal}" th:text="${line}">Alice pose un disque.</li>
-            </ul>
-            <p class="subtitle" style="margin-top:.8rem">
-                <i class="disc flower"></i> fleur retournée · <i class="disc skull"></i> crâne retourné
-            </p>
+            <div class="drawer-body">
+                <p class="subtitle" th:if="${#lists.isEmpty(journal)}">Rien pour l'instant.</p>
+                <ul class="journal">
+                    <li th:each="line : ${journal}" th:text="${line}">Alice pose un disque.</li>
+                </ul>
+                <div class="legend">
+                    <span class="mini flower"><svg><use href="#i-flower"></use></svg></span> fleur
+                    <span class="mini skull"><svg><use href="#i-skull"></use></svg></span> crâne
+                </div>
+                <th:block th:unless="${#lists.isEmpty(reportable)}">
+                    <span class="mono" style="margin-top:.6rem">Signaler un joueur</span>
+                    <div class="report-row" th:each="s : ${reportable}">
+                        <details>
+                            <summary th:text="'Signaler ' + ${s['name']}">Signaler Bob</summary>
+                            <form th:action="@{/games/{id}/report(id=${game['id']})}" method="post">
+                                <input type="hidden" name="participantId" th:value="${s['id']}">
+                                <textarea name="reason" maxlength="300" required placeholder="Motif du signalement"></textarea>
+                                <button class="btn btn-danger btn-sm" type="submit">Envoyer</button>
+                            </form>
+                        </details>
+                    </div>
+                </th:block>
+            </div>
         </aside>
     </div>
 
-    <p><a th:href="@{/dashboard}">Retour au tableau de bord</a></p>
+    <section class="dock" th:if="${isPlayer and inProgress}">
+        <div class="who">
+            <p><span class="mono">Ma main</span> · Fleurs : <b th:text="${hand['flowers']}">3</b> · Crâne : <b th:text="${hand['skulls']}">1</b></p>
+            <p class="subtitle" style="margin:0" th:if="${meOut}">Tu es éliminé : tu peux suivre la fin de la partie.</p>
+            <p class="subtitle" style="margin:0" th:unless="${myTurn or meOut}">Attends ton tour, la page se met à jour toute seule.</p>
+            <p class="subtitle" style="margin:0" th:if="${myTurn and challenge}">Défi : ta pile d'abord, puis celles des autres (clique sur une pile).</p>
+        </div>
+
+        <div class="hand">
+            <th:block th:if="${hand['flowers'] > 0}" th:each="n : ${#numbers.sequence(1, hand['flowers'])}">
+                <form th:if="${actions['placeFlower']}" th:action="@{/games/{id}/move(id=${game['id']})}" method="post">
+                    <input type="hidden" name="type" value="PLACE_DISC">
+                    <input type="hidden" name="discType" value="FLOWER">
+                    <button class="hand-card" type="submit" title="Poser une fleur"><span class="medal"><svg><use href="#i-flower"></use></svg></span><span class="lbl">Fleur</span></button>
+                </form>
+                <button th:unless="${actions['placeFlower']}" class="hand-card" type="button" disabled><span class="medal"><svg><use href="#i-flower"></use></svg></span><span class="lbl">Fleur</span></button>
+            </th:block>
+            <th:block th:if="${hand['skulls'] > 0}">
+                <form th:if="${actions['placeSkull']}" th:action="@{/games/{id}/move(id=${game['id']})}" method="post">
+                    <input type="hidden" name="type" value="PLACE_DISC">
+                    <input type="hidden" name="discType" value="SKULL">
+                    <button class="hand-card" type="submit" title="Poser le crâne"><span class="medal skull"><svg><use href="#i-skull"></use></svg></span><span class="lbl">Crâne</span></button>
+                </form>
+                <button th:unless="${actions['placeSkull']}" class="hand-card" type="button" disabled><span class="medal skull"><svg><use href="#i-skull"></use></svg></span><span class="lbl">Crâne</span></button>
+            </th:block>
+        </div>
+
+        <div class="actions" th:if="${myTurn}">
+            <form class="actions" th:if="${actions['bid']}" th:action="@{/games/{id}/move(id=${game['id']})}" method="post">
+                <input type="hidden" name="type" value="BID">
+                <span class="stepper">
+                    <button class="btn btn-ghost btn-sm" type="button" onclick="this.parentNode.querySelector('input').stepDown()">−</button>
+                    <input type="number" name="bidAmount" aria-label="Nombre de fleurs annoncé"
+                           th:min="${actions['bidMin']}" th:max="${actions['bidMax']}" th:value="${actions['bidMin']}">
+                    <button class="btn btn-ghost btn-sm" type="button" onclick="this.parentNode.querySelector('input').stepUp()">+</button>
+                </span>
+                <button class="btn btn-sm" type="submit">Annoncer</button>
+            </form>
+            <form th:if="${actions['pass']}" th:action="@{/games/{id}/move(id=${game['id']})}" method="post">
+                <input type="hidden" name="type" value="PASS">
+                <button class="btn btn-danger btn-sm" type="submit">Me retirer</button>
+            </form>
+            <form th:each="r : ${actions['reveal']}" th:action="@{/games/{id}/move(id=${game['id']})}" method="post">
+                <input type="hidden" name="type" value="REVEAL">
+                <input type="hidden" name="targetPlayerId" th:value="${r['id']}">
+                <button class="btn btn-sm" type="submit"
+                        th:text="'Retourner : ' + ${r['name']} + ' (' + ${r['count']} + ')'">Retourner</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="dock" th:if="${inProgress and !isPlayer}">
+        <p class="subtitle" style="margin:0" th:text="${leftGame} ? 'Tu as quitté cette partie : une IA joue à ta place.' : 'Tu regardes cette partie.'">Tu regardes cette partie.</p>
+    </section>
 </main>
+<script>
+    // Rejoue à l'écran les coups joués depuis le dernier affichage (les IA jouent instantanément côté serveur) :
+    // poses avec la main, annonces, retraits, disques retournés, défi réussi ou raté, nouvelle manche.
+    (function () {
+        var arena = document.querySelector('.arena');
+        var hand = document.getElementById('anim-hand');
+        var note = document.getElementById('replay-note');
+        var skip = document.getElementById('replay-skip');
+        var ghosts = document.getElementById('ghosts');
+        if (!arena || !hand || !note || !skip || !ghosts) { return; }
+        var items = Array.prototype.map.call(document.querySelectorAll('#events li'), function (li) {
+            var d = li.dataset;
+            return { t: d.t, p: d.p, q: d.q, v: d.v, sig: [d.t, d.p, d.q, d.v].join('|') };
+        });
+        var sigs = items.map(function (e) { return e.sig; });
+        var key = 'skull-events-' + arena.dataset.game;
+        var old = null;
+        try {
+            old = JSON.parse(sessionStorage.getItem(key));
+            sessionStorage.setItem(key, JSON.stringify(sigs));
+        } catch (e) { return; }
+        var firstVisit = old === null;
+        if (firstVisit) { old = []; }
+        if (!Array.isArray(old) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { return; }
+        var overlap = 0;
+        for (var k = Math.min(old.length, sigs.length); k > 0 && overlap === 0; k--) {
+            var same = true;
+            for (var i = 0; i < k; i++) { if (old[old.length - k + i] !== sigs[i]) { same = false; break; } }
+            if (same) { overlap = k; }
+        }
+        if (firstVisit) {
+            // première ouverture dans cet onglet : on ne rejoue que la manche en cours
+            items.forEach(function (e, i) { if (e.t === 'R') { overlap = i; } });
+        }
+        var valid = function (id) { return /^[0-9]+$/.test(id || ''); };
+        var fresh = items.slice(overlap).filter(function (e) { return e.t !== 'O'; });
+        if (fresh.length === 0) { return; }
+        var lastRound = -1;
+        fresh.forEach(function (e, i) { if (e.t === 'R') { lastRound = i; } });
+        // disques de la manche précédente déjà vus : on les redessine pour pouvoir les retourner
+        var seenBacks = [];
+        if (lastRound >= 0) {
+            var prevRound = -1;
+            for (var j = 0; j < overlap; j++) { if (items[j].t === 'R') { prevRound = j; } }
+            for (var j2 = prevRound + 1; j2 < overlap; j2++) { if (items[j2].t === 'P') { seenBacks.push(items[j2].p); } }
+        }
+
+        var piles = arena.querySelectorAll('[data-pile]');
+        var pending = {};
+        fresh.forEach(function (e, i) { if (i > lastRound && e.t === 'P' && valid(e.p)) { pending[e.p] = (pending[e.p] || 0) + 1; } });
+        Object.keys(pending).forEach(function (p) {
+            var discs = arena.querySelectorAll('[data-pile="' + p + '"] .disc');
+            for (var i = Math.max(0, discs.length - pending[p]); i < discs.length; i++) { discs[i].classList.add('pending'); }
+        });
+        if (lastRound >= 0) { piles.forEach(function (el) { el.classList.add('replay-hide'); }); }
+
+        var seat = function (id) { return valid(id) ? arena.querySelector('[data-seat="' + id + '"]') : null; };
+        var spot = function (id) {
+            if (!valid(id)) { return null; }
+            var pile = arena.querySelector('[data-pile="' + id + '"]');
+            var s = seat(id);
+            if (pile) { return { left: pile.style.left, top: pile.style.top }; }
+            if (!s) { return null; }
+            var x = parseFloat(s.style.left), y = parseFloat(s.style.top);
+            return { left: (50 + (x - 50) * 17 / 38) + '%', top: (50 + (y - 50) * 17 / 38) + '%' };
+        };
+        var name = function (id) { var s = seat(id); var n = s && s.querySelector('.seat-name'); return n ? n.textContent : ''; };
+        var say = function (id, text) {
+            var s = seat(id);
+            if (!s) { return; }
+            var b = document.createElement('span');
+            b.className = 'bubble';
+            b.textContent = text;
+            s.appendChild(b);
+            setTimeout(function () { b.remove(); }, 1300);
+        };
+        var felt = arena.querySelector('.felt');
+        var show = function (text) { note.textContent = text; note.hidden = false; if (felt) { felt.classList.add('replaying'); } };
+        var backs = {};
+        var faces = {};
+        var ghost = function (id, kind) {
+            var at = spot(id);
+            if (!at) { return; }
+            var g = document.createElement('span');
+            g.className = 'ghost ' + kind;
+            g.style.left = at.left;
+            g.style.top = at.top;
+            if (kind === 'back') {
+                backs[id] = backs[id] || [];
+                g.style.marginTop = (-4 * backs[id].length) + 'px';
+                backs[id].push(g);
+            } else {
+                var top = backs[id] && backs[id].pop();
+                if (top) { top.remove(); }
+                faces[id] = (faces[id] || 0) + 1;
+                g.style.marginLeft = (34 * faces[id]) + 'px';
+            }
+            var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            var use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+            use.setAttribute('href', kind === 'face-flower' ? '#i-flower' : kind === 'face-skull' ? '#i-skull' : '#i-back');
+            svg.appendChild(use);
+            g.appendChild(svg);
+            ghosts.appendChild(g);
+        };
+        var clearGhosts = function () { ghosts.textContent = ''; backs = {}; faces = {}; };
+
+        var timer = null;
+        var step = 0;
+        var done = false;
+        var finish = function () {
+            if (done) { return; }
+            done = true;
+            clearTimeout(timer);
+            clearGhosts();
+            arena.querySelectorAll('.disc.pending').forEach(function (d) { d.classList.remove('pending'); });
+            piles.forEach(function (el) { el.classList.remove('replay-hide'); });
+            hand.classList.remove('show');
+            note.hidden = true;
+            if (felt) { felt.classList.remove('replaying'); }
+            skip.hidden = true;
+            window.skullAnimating = false;
+        };
+        var moveHand = function (from, to, then) {
+            hand.style.transition = 'none';
+            hand.style.left = from.left;
+            hand.style.top = from.top;
+            hand.classList.add('show');
+            void hand.offsetWidth;
+            hand.style.transition = '';
+            hand.style.left = to.left;
+            hand.style.top = to.top;
+            timer = setTimeout(function () {
+                hand.classList.add('drop');
+                then();
+                timer = setTimeout(function () { hand.classList.remove('drop'); next(); }, 260);
+            }, 480);
+        };
+        var bid = 0;
+        function next() {
+            if (done) { return; }
+            if (step >= fresh.length) { finish(); return; }
+            var index = step;
+            var e = fresh[step++];
+            var wait = 850;
+            if (e.t === 'P') {
+                var s = seat(e.p), to = spot(e.p);
+                if (!s || !to) { next(); return; }
+                say(e.p, 'Pose un disque');
+                moveHand({ left: s.style.left, top: s.style.top }, to, function () {
+                    if (index > lastRound) {
+                        var d = arena.querySelector('[data-pile="' + e.p + '"] .disc.pending');
+                        if (d) { d.classList.remove('pending'); }
+                    } else {
+                        ghost(e.p, 'back');
+                    }
+                });
+                return;
+            }
+            hand.classList.remove('show');
+            if (e.t === 'B') { bid = e.v; say(e.p, 'Annonce ' + e.v); show(name(e.p) + ' annonce ' + e.v); }
+            else if (e.t === 'X') { say(e.p, 'Se retire'); }
+            else if (e.t === 'F') { ghost(e.q, 'face-flower'); say(e.p, 'Fleur ' + e.v + (bid ? ' / ' + bid : '')); show('Défi de ' + name(e.p) + ' : fleur chez ' + name(e.q)); wait = 1100; }
+            else if (e.t === 'S') { ghost(e.q, 'face-skull'); say(e.p, 'Crâne !'); show('Défi de ' + name(e.p) + ' : crâne chez ' + name(e.q) + ' !'); wait = 1400; }
+            else if (e.t === 'W') { say(e.p, 'Défi réussi !'); show(name(e.p) + ' réussit son défi (' + e.v + ' / 2)'); wait = 1400; }
+            else if (e.t === 'L') { say(e.p, 'Perd un disque'); show(name(e.p) + ' perd un disque'); wait = 1200; }
+            else if (e.t === 'E') { say(e.p, 'Éliminé'); show(name(e.p) + ' est éliminé'); wait = 1200; }
+            else if (e.t === 'R') {
+                clearGhosts();
+                bid = 0;
+                if (index === lastRound) { piles.forEach(function (el) { el.classList.remove('replay-hide'); }); }
+                show('Manche ' + e.v);
+                wait = 1000;
+            }
+            else if (e.t === 'G') { say(e.p, 'Gagne !'); show(name(e.p) + ' remporte la partie'); wait = 1400; }
+            timer = setTimeout(next, wait);
+        }
+        seenBacks.forEach(function (id) { ghost(id, 'back'); });
+        window.skullAnimating = true;
+        skip.hidden = false;
+        skip.addEventListener('click', finish);
+        timer = setTimeout(next, 250);
+    })();
+</script>
 <script th:if="${inProgress and !myTurn}">
     setInterval(function () {
         var tag = document.activeElement ? document.activeElement.tagName : '';
-        if (!document.querySelector('details[open]') && tag !== 'INPUT' && tag !== 'TEXTAREA') {
+        if (!window.skullAnimating && !document.querySelector('details[open]') && tag !== 'INPUT' && tag !== 'TEXTAREA') {
             window.location.reload();
         }
     }, 3000);
